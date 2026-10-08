@@ -20,7 +20,7 @@ jobs:
         with:
           node-version: 22
       - name: Install dependencies
-        run: npm install
+        run: npm install --legacy-peer-deps
       - name: Build web
         run: npm run build
 
@@ -42,7 +42,7 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
       - name: Install dependencies
-        run: npm install
+        run: npm install --legacy-peer-deps
       - name: Build web
         run: npm run build
       - name: Add Android platform
