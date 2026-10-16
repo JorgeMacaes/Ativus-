@@ -139,3 +139,71 @@ Cada versão publicada deve ser identificável e recuperável. As alterações f
 6. O inventário suporta recolha offline, sincronização e rastreabilidade das alterações.
 7. Dados extraídos ou inferidos por IA são distinguíveis dos dados confirmados e não são publicados como factos sem validação.
 8. As categorias, campos, hierarquias e regras podem ser parametrizados na plataforma de gestão.
+
+
+## 10. IA para acelerar o inventário e reduzir trabalho repetitivo
+
+### Objetivo
+A IA deve reduzir substancialmente o tempo necessário para criar, validar, atualizar e inspecionar o inventário. O utilizador não deve ter de preencher repetidamente os mesmos dados para elementos equivalentes. A recolha deve privilegiar modelos, preenchimento automático, importação em massa, reutilização de dados confirmados e confirmação por exceção.
+
+### Modelos de elementos e lotes
+- Criar modelos reutilizáveis por tipologia, fabricante, modelo, material e configuração.
+- Permitir aplicar um modelo a vários elementos, espaços, pisos ou edifícios, com criação em lote e pré-visualização antes de gravar.
+- Exemplo: registar uma cama-modelo uma vez e criar as ocorrências nos quartos selecionados, herdando dimensões, materiais, fabricante e tipologia.
+- Exemplo: aplicar a ficha técnica comum de um conjunto de televisões a todas as unidades do hotel que sejam do mesmo fabricante e modelo.
+- Os campos comuns são herdados do modelo; cada unidade física mantém identidade própria, localização, código/QR, fotografia e, quando existente, número de série.
+- A herança deve ser explícita e rastreável. O utilizador pode substituir um campo numa unidade sem alterar todas as restantes, e pode escolher se uma atualização do modelo se propaga aos elementos associados.
+- Uma mudança de modelo não deve apagar o valor anterior nem alterar retroativamente registos históricos.
+
+### Preenchimento automático com fontes de confiança
+O sistema pode preencher ou sugerir valores a partir de:
+1. dados já confirmados no inventário do mesmo ativo;
+2. modelos aprovados para a mesma tipologia;
+3. equipamentos do mesmo fabricante e modelo no mesmo hotel ou cadeia;
+4. fichas técnicas, listas de compras, faturas, contratos, plantas, manuais e folhas de cálculo importadas;
+5. fotografias de etiquetas, placas de características e números de série, usando reconhecimento visual/OCR;
+6. histórico validado de outros ativos comparáveis, quando o utilizador tenha autorização para o consultar.
+
+Mostrar a origem do valor preenchido e distinguir valores herdados, extraídos de documentos, inferidos por IA e confirmados por utilizador. A confiança e a origem devem orientar a necessidade de confirmação.
+
+### Separar dados de modelo e dados da unidade física
+**Dados normalmente partilháveis por modelo:** fabricante, marca, modelo, dimensões nominais, material, acabamento, potência/capacidade, especificações técnicas, manual e periodicidade recomendada de manutenção.
+
+**Dados próprios de cada unidade:** código de inventário, QR, número de série, localização exata, fotografia de identificação, datas individuais de aquisição/instalação, garantia individual quando diferente, condição observada, leituras, avarias, patologias, intervenções e custos reais.
+
+Não assumir que todos os elementos são iguais só por terem o mesmo nome ou estarem no mesmo hotel. A IA deve identificar candidatos a grupo, apresentar diferenças detetadas e permitir confirmação. Se o número de série não for legível ou estiver ausente, registar como desconhecido/em falta; nunca inventá-lo.
+
+### Deteção de grupos e exceções
+- Analisar plantas, listas e fotografias para sugerir conjuntos repetidos por piso, quarto, ala, edifício ou hotel.
+- Detetar potenciais diferenças de dimensão, modelo, acabamento, número de série, localização e fotografia.
+- Criar primeiro um grupo proposto e uma lista das unidades a criar/atualizar, com erros e exceções visíveis.
+- Permitir confirmar todos os registos iguais de uma só vez e rever individualmente apenas exceções.
+- Detetar possíveis duplicados por código, número de série, imagem, localização e semelhança de características; nunca fundir ou apagar automaticamente registos com histórico sem aprovação.
+
+### Aplicação a inspeções e restantes processos
+A mesma lógica deve reduzir o trabalho em todas as fases:
+- **Inspeções:** herdar o ativo, âmbito, elementos, checklist e campos a partir da agenda e do inventário; registar automaticamente o utilizador autenticado e os tempos de início/fim.
+- **Registo de condição:** reutilizar informação estável da ficha, pedir apenas os dados da inspeção atual e permitir assinalar rapidamente “sem anomalias” quando aplicável.
+- **Patologias:** sugerir patologias, causas, efeitos e trabalhos com base na tipologia, material, localização e histórico, sempre com confirmação técnica.
+- **Trabalhos:** reutilizar modelos de trabalho, unidades, critérios de aceitação e quantidades de referência; distinguir valor sugerido de valor confirmado.
+- **Custos:** reutilizar preços históricos comparáveis e apresentar período, fonte e pressupostos. Se não houver dados suficientes, indicar que não é possível estimar com fiabilidade em vez de inventar um preço.
+- **Manutenção preventiva:** criar planos em lote para equipamentos do mesmo modelo, respeitando recomendações do fabricante, contratos e condições locais.
+- **Atualização:** ao importar novas listas ou fotografias, comparar com o inventário existente e propor apenas as alterações necessárias.
+
+### Experiência de utilização
+- Um fluxo rápido de criação por modelo e lote, além da criação individual.
+- Pré-visualização do resultado antes de criar ou alterar muitos registos.
+- Ecrã de exceções: mostrar apenas dados em falta, conflitos e diferenças que precisam de atenção.
+- Preenchimento automático com possibilidade de aceitar, editar ou rejeitar sugestões.
+- Guardar rascunhos, funcionar offline e sincronizar sem perder alterações.
+- Permitir ao utilizador corrigir uma sugestão e reutilizar a correção em casos semelhantes, sujeita às permissões e validação configuradas.
+- Não repetir perguntas por campos que já estejam confirmados e sejam aplicáveis; pedir apenas o que falta ou é específico daquela unidade.
+
+### Critérios de aceitação adicionais
+9. É possível criar centenas de unidades a partir de um modelo comum, mantendo código, localização, fotografia e número de série individualizados.
+10. A aplicação permite aplicar dados comuns a vários pisos/quartos sem voltar a preencher manualmente cada campo.
+11. Os campos próprios de cada unidade não são sobrescritos inadvertidamente por atualizações do modelo.
+12. A IA apresenta grupos sugeridos, origem dos dados, confiança e exceções detetadas.
+13. O utilizador pode confirmar em lote os registos consistentes e rever apenas as exceções.
+14. O mesmo princípio de reutilização e preenchimento automático aplica-se ao inventário, inspeções, patologias, trabalhos, custos e manutenção.
+15. A IA não inventa números de série, características, preços ou resultados técnicos; dados não confirmados permanecem identificados como tal.
