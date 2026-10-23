@@ -147,3 +147,14 @@ A decisão de emergência deve seguir critérios e procedimentos aprovados, e n�
 8. A IA explica as suas sugestões e exige validação adequada para decisões críticas.
 9. A análise de incumprimentos permite apurar tempos de resposta e resolução com definições consistentes.
 10. O sistema conserva o histórico das regras e dos valores usados em cada decisão.
+
+
+## 10. Parametrização completa dos alertas
+
+Os níveis U0–U4 indicados neste documento são apenas uma configuração-base inicial. A plataforma deve permitir à entidade gestora criar, renomear, reordenar, ajustar, ativar ou desativar níveis e definir as condições que os desencadeiam, dentro das permissões e salvaguardas configuradas.
+
+Além da prioridade de trabalhos, a configuração deve suportar outros alertas do sistema: vencimento de inspeções, prazos de resposta/resolução, garantias, manutenção preventiva, risco de segurança, valores de monitorização/sensores e falhas de sincronização. Cada tipo de alerta deve permitir configurar limiares, destinatários, canais, repetição, escalonamento, reconhecimento, resolução e auditoria.
+
+Os níveis e limiares devem ser aplicáveis por tipo de ativo, sistema, componente, contrato e contexto. Cada alerta gerado conserva os valores observados, a regra e a versão usadas, a data/hora e o histórico de alterações. A alteração da configuração não deve reclassificar silenciosamente alertas ou ordens antigas; a reavaliação de registos existentes deve ser uma ação explícita e auditada.
+
+A plataforma deve permitir simular/testar uma regra antes de a publicar. Alertas de risco imediato e ações de segurança devem ter permissões reforçadas e proteção contra desativação acidental. Os prazos apresentados como iniciais neste documento não são imutáveis: a entidade gestora pode ajustá-los através da parametrização, mantendo registo de quem alterou a regra, quando, porquê e a partir de que data produz efeitos.
