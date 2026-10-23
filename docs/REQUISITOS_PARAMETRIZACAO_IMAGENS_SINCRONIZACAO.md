@@ -59,3 +59,41 @@ O estado “Sincronizado” só pode ser mostrado após confirmação do servido
 A plataforma e a app devem usar uma API e uma base de dados comuns. A app mantém uma base local para trabalho offline e sincroniza com o servidor. A plataforma de gestão é a fonte de publicação da parametrização; a app consome versões publicadas e envia os registos de campo.
 
 A interface atual baseada em armazenamento local do navegador é apenas um protótipo: não deve apresentar sincronização real nem estado “Sincronizado” sem uma API/backend operacional. Implementar e testar a sincronização real requer serviço de API, autenticação/autorização, persistência central, fila de sincronização e testes de conflito/offline.
+
+
+## 8. Parametrização de todos os campos do sistema
+
+A plataforma de gestão deve permitir parametrizar **todos os campos funcionais apresentados ou utilizados no sistema**, e não apenas os catálogos atualmente listados. A configuração deve abranger os formulários da aplicação móvel, os formulários da plataforma web, importações, relatórios, regras de validação e dados usados pela IA.
+
+Para cada campo, quando aplicável, um utilizador com permissões deve poder configurar:
+- Nome/etiqueta, descrição, código, tipo de campo e formato;
+- Se está ativo, visível, editável ou apenas de leitura;
+- Obrigatoriedade, valor por defeito, limites, precisão e validações;
+- Opções de seleção, possibilidade de adicionar opções e relações com outros campos;
+- Regras condicionais de apresentação, preenchimento e obrigatoriedade;
+- Aplicabilidade por tipo de ativo, espaço, componente, subcomponente, equipamento, inspeção, patologia, trabalho ou perfil;
+- Ordem e agrupamento do campo nos formulários;
+- Permissões para consultar, criar ou alterar o campo;
+- Inclusão em pesquisa, filtros, exportações e relatórios, quando adequado.
+
+Devem poder ser criados novos campos e desativados campos existentes sem alteração do código nem reinstalação da aplicação móvel. Campos já usados em registos históricos não devem ser eliminados de forma a destruir dados; a desativação deve preservar os valores e a sua interpretação histórica.
+
+A publicação de uma configuração deve atualizar a versão consumida pela app após sincronização. A plataforma deve validar dependências e mostrar o impacto previsto antes de publicar. Campos e regras que afetem dados existentes devem exigir migração controlada ou uma decisão explícita, sem conversões silenciosas.
+
+## 9. Parametrização dos níveis de alerta
+
+Os níveis de alerta devem ser totalmente configuráveis pela plataforma, incluindo:
+- Código, nome, descrição e ordem/severidade do nível;
+- Cor, ícone e texto apresentados, sem depender exclusivamente da cor;
+- Critérios ou condições que ativam o alerta;
+- Limiares numéricos, intervalos, unidades e regras de comparação, quando aplicáveis;
+- Ativo, sistema, componente, tipo de inspeção e contexto a que se aplica;
+- Prazo para resposta, mitigação e resolução, se aplicável;
+- Destinatários, canais, frequência, repetição e escalonamento;
+- Condições de reconhecimento, resolução, reabertura e encerramento do alerta;
+- Ações obrigatórias, avisos de segurança e permissões para alterar a classificação;
+- Data de entrada em vigor, versão, autor, justificação e histórico.
+
+A configuração deve suportar alertas de conservação, manutenção, risco, prazos de inspeção, garantias, manutenção preventiva, sensores/monitorização, falhas de sincronização e outras áreas que venham a ser configuradas. A lista de tipos de alerta não deve ficar limitada a um conjunto fixo no código.
+
+A plataforma deve permitir testar regras com exemplos antes da publicação. Alertas críticos e procedimentos de segurança devem ter proteção contra desativação acidental, permissões específicas e auditoria; a IA não pode alterar estas regras por iniciativa própria. A app e a plataforma devem usar a mesma versão publicada das regras e conservar, em cada alerta, a regra/versão que o originou.
