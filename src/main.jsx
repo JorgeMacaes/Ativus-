@@ -43,7 +43,7 @@ function App(){
    <nav>{nav.map(([id,label,Icon])=><button className={view===id?'nav active':'nav'} key={id} onClick={()=>go(id)}><Icon size={19}/><span>{label}</span></button>)}</nav>
    <div className="sidefoot">MVP 0.2<br/><small>Inventário · inspeção · patologias · parametrização</small></div>
   </aside>
-  <main className="main"><header><button className="hamb" onClick={()=>setMenu(true)}><Menu/></button><div><div className="eyebrow">SEVEN M ATIVUS</div><h1>{view==='dashboard'?'Dashboard':view==='assets'?'Ativos / Inventário':view==='asset'?current?.name||'Ativo':nav.find(x=>x[0]===view)?.[1]||'Ativus'}</h1></div><div className="header-actions"><div className="sync">● Dados locais</div><div className="user">JM</div></div></header>
+  <main className="main"><header><button className="hamb" onClick={()=>setMenu(true)}><Menu/></button><div><div className="eyebrow">SEVEN M ATIVUS</div><h1>{view==='dashboard'?'Dashboard':view==='assets'?'Ativos / Inventário':view==='asset'?current?.name||'Ativo':nav.find(x=>x[0]===view)?.[1]||'Ativus'}</h1></div><div className="header-actions"><div className="sync">● Protótipo local</div><div className="user">JM</div></div></header>
    {view==='dashboard'&&<Dashboard assets={assets} inspections={inspections} pathologies={pathologies} onAssets={()=>go('assets')} onNew={addAsset}/>}
    {view==='assets'&&<Assets assets={filtered} query={query} setQuery={setQuery} onNew={addAsset} onOpen={id=>{setSelected(id);setView('asset')}}/>}
    {view==='asset'&&current&&<AssetDetail asset={current} inspections={inspections} pathologies={pathologies} onBack={()=>go('assets')} onNewInspection={()=>addInspection(current.id)} onNewPathology={addPathology}/>}
@@ -56,12 +56,35 @@ function App(){
   </main>
  </div>
 }
-function Dashboard({assets,inspections,pathologies,onAssets,onNew}){const ec5=assets.filter(a=>a.ec===5).length,open=pathologies.filter(p=>!['Encerrada','Verificada'].includes(p.status)).length;return <section className="content">
- <div className="hero"><div><span className="pill">MVP 0.2 • Operacional</span><h2>Gestão técnica dos teus ativos</h2><p>Inventário, inspeções, patologias, trabalhos e parametrização num único fluxo.</p></div><button className="primary" onClick={onNew}><Plus size={18}/> Novo Ativo</button></div>
- <div className="stats"><Stat icon={Building2} label="Ativos" value={assets.length}/><Stat icon={ClipboardCheck} label="Inspeções" value={inspections.length}/><Stat icon={AlertTriangle} label="Patologias abertas" value={open}/><Stat icon={ShieldCheck} label="EC 5 / críticos" value={ec5}/></div>
- <div className="grid2"><div className="panel"><div className="panelhead"><div><h3>Ativos recentes</h3><span>Resumo do inventário</span></div><button className="textbtn" onClick={onAssets}>Ver todos <ChevronRight size={16}/></button></div>{assets.slice(0,5).map(a=><AssetRow key={a.id} a={a} onClick={onAssets}/>)}</div>
- <div className="panel"><div className="panelhead"><div><h3>Últimas inspeções</h3><span>Atividade recente</span></div></div>{inspections.slice(0,5).map(i=><div className="inspectionrow" key={i.id}><div className="datebox">{i.date.slice(8,10)}<small>{i.date.slice(5,7)}</small></div><div><strong>{i.type}</strong><span>{i.asset} · {i.inspector}</span></div><Badge value={i.maintenance}/></div>)}</div></div>
- </section>}
+function Dashboard({assets,inspections,pathologies,onAssets,onNew}){
+ const open=pathologies.filter(p=>!['Encerrada','Verificada'].includes(p.status)).length;
+ const ecCounts=[0,1,2,3,4,5].map(ec=>({label:'EC '+ec,value:assets.filter(a=>Number(a.ec)===ec).length}));
+ const severity=[{label:'Crítica · EC5',value:pathologies.filter(p=>Number(p.ec)===5).length},{label:'Alta · EC4',value:pathologies.filter(p=>Number(p.ec)===4).length},{label:'Moderada · EC3',value:pathologies.filter(p=>Number(p.ec)===3).length},{label:'Baixa · EC0–2',value:pathologies.filter(p=>Number(p.ec)<=2).length}];
+ const maxSeverity=Math.max(1,...severity.map(x=>x.value));
+ const maxEC=Math.max(1,...ecCounts.map(x=>x.value));
+ const recent=inspections.slice().sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,4);
+ return <section className="content">
+  <div className="hero"><div><span className="pill">Protótipo · dados locais</span><h2>Visão global dos ativos</h2><p>Indicadores visuais para acompanhar inventário, inspeções e anomalias. Os dados atuais são demonstrativos e guardados neste navegador.</p></div><button className="primary" onClick={onNew}><Plus size={18}/> Novo Ativo</button></div>
+  <div className="stats"><Stat icon={Building2} label="Ativos registados" value={assets.length}/><Stat icon={ClipboardCheck} label="Inspeções registadas" value={inspections.length}/><Stat icon={AlertTriangle} label="Patologias por tratar" value={open}/><Stat icon={ShieldCheck} label="Ativos em EC5" value={assets.filter(a=>Number(a.ec)===5).length}/></div>
+  <div className="dashgrid">
+   <div className="panel chartpanel"><div className="panelhead"><div><h3>Estado de conservação dos ativos</h3><span>Distribuição por classe EC</span></div><span className="charttag">Inventário</span></div>
+    <div className="ecbars">{ecCounts.map(item=><div className="ecbar" key={item.label}><div className="ecbartrack"><div className={'ecbarfill ecfill'+item.label.slice(-1)} style={{height:(item.value/maxEC*100)+'%'}}/><span>{item.value}</span></div><small>{item.label}</small></div>)}</div>
+    <div className="chartnote">Total analisado: <b>{assets.length}</b> ativos com classificação registada.</div>
+   </div>
+   <div className="panel chartpanel"><div className="panelhead"><div><h3>Patologias por gravidade</h3><span>Classificação atual dos registos</span></div><span className="charttag">Patologias</span></div>
+    <div className="severitybars">{severity.map(item=><div className="severityrow" key={item.label}><div className="severitylabel"><span>{item.label}</span><b>{item.value}</b></div><div className="severitytrack"><div className={'severityfill '+(item.label.startsWith('Crítica')?'sevcritical':item.label.startsWith('Alta')?'sevhigh':item.label.startsWith('Moderada')?'sevmedium':'sevlow')} style={{width:(item.value/maxSeverity*100)+'%'}}/></div></div>)}</div>
+    <div className="chartnote">Patologias registadas: <b>{pathologies.length}</b>. A classificação depende dos dados introduzidos.</div>
+   </div>
+   <div className="panel chartpanel"><div className="panelhead"><div><h3>Atividade de inspeção</h3><span>Registos mais recentes</span></div></div>
+    {recent.length?recent.map(i=><div className="inspectionrow" key={i.id}><div className="datebox">{String(i.date).slice(8,10)}<small>{String(i.date).slice(5,7)}</small></div><div><strong>{i.type} · {i.id}</strong><span>{i.asset} · {i.inspector}</span></div><Badge value={i.maintenance}/></div>):<p className="empty">Ainda não existem inspeções.</p>}
+   </div>
+   <div className="panel chartpanel"><div className="panelhead"><div><h3>Ativos recentes</h3><span>Resumo do inventário</span></div><button className="textbtn" onClick={onAssets}>Ver inventário <ChevronRight size={15}/></button></div>
+    {assets.slice(0,4).map(a=><AssetRow key={a.id} a={a} onClick={onAssets}/>)}
+   </div>
+  </div>
+  <div className="dashfoot"><ShieldCheck size={17}/><span><b>Nota de fiabilidade:</b> os gráficos são calculados a partir dos registos disponíveis neste navegador. Não representam dados partilhados entre utilizadores nem substituem um backend central.</span></div>
+ </section>
+}
 function Stat({icon:Icon,label,value}){return <div className="stat"><div className="staticon"><Icon size={20}/></div><div><span>{label}</span><strong>{value}</strong></div></div>}
 function Assets({assets,query,setQuery,onNew,onOpen}){return <section className="content"><div className="toolbar"><div className="search"><Search size={18}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Pesquisar ativo, local ou código..."/></div><button className="primary" onClick={onNew}><Plus size={18}/> Novo Ativo</button></div><div className="table panel"><div className="thead"><span>Ativo</span><span>Localização</span><span>EC</span><span>Manutenção</span><span>Estado</span><span></span></div>{assets.map(a=><button className="trow" key={a.id} onClick={()=>onOpen(a.id)}><div><strong>{a.name}</strong><small>{a.id} · {a.type}</small></div><span>{a.location}</span><span><Ec value={a.ec}/></span><span><Badge value={a.maintenance}/></span><span className="green">● {a.status}</span><ChevronRight size={18}/></button>)}</div></section>}
 function AssetDetail({asset,inspections,pathologies,onBack,onNewInspection,onNewPathology}){const list=inspections.filter(i=>i.asset===asset.id),pats=pathologies.filter(p=>p.asset===asset.id);return <section className="content"><button className="back" onClick={onBack}>← Voltar aos ativos</button><div className="assethead"><div><span className="pill">{asset.id}</span><h2>{asset.name}</h2><p>{asset.type} · {asset.location}</p></div><div className="actions"><button className="secondary" onClick={onNewPathology}><Plus size={16}/> Patologia</button><button className="primary" onClick={onNewInspection}><Plus size={18}/> Nova inspeção</button></div></div><div className="stats compact"><Stat icon={Boxes} label="Componentes" value={asset.components}/><Stat icon={AlertTriangle} label="Patologias" value={pats.length}/><Stat icon={ClipboardCheck} label="Inspeções" value={list.length}/><Stat icon={ShieldCheck} label="Estado de conservação" value={'EC '+asset.ec}/></div><div className="grid2"><div className="panel"><h3>Inventário</h3><div className="details"><p><b>Código:</b> {asset.id}</p><p><b>Tipo:</b> {asset.type}</p><p><b>Localização:</b> {asset.location}</p><p><b>Manutenção:</b> <Badge value={asset.maintenance}/></p><p><b>EC:</b> <Ec value={asset.ec}/></p></div></div><div className="panel"><h3>Patologias recentes</h3>{pats.length?pats.map(p=><div className="listrow" key={p.id}><div><strong>{p.type} · {p.characteristic}</strong><span>{p.material} · {p.location||p.subcomponent}</span></div><Ec value={p.ec}/></div>):<p className="empty">Ainda não existem patologias.</p>}</div></div></section>}
