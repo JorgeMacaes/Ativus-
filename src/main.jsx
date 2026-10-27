@@ -2,6 +2,7 @@ import React,{useMemo,useState} from 'react';
 import {createRoot} from 'react-dom/client';
 import {Building2,ClipboardCheck,AlertTriangle,CalendarDays,Plus,Search,Settings,FileText,Activity,ChevronRight,Menu,X,LayoutDashboard,Boxes,Link2,Brain,ShieldCheck} from 'lucide-react';
 import './styles.css';
+import { backendConfigured } from './lib/supabase.js';
 
 const seedAssets=[
  {id:'ATV-0001',name:'Edifício Rua Central',type:'Edifício multifamiliar',location:'Porto',status:'Ativo',ec:2,maintenance:'Bom',components:12,pathologies:4},
@@ -43,7 +44,7 @@ function App(){
    <nav>{nav.map(([id,label,Icon])=><button className={view===id?'nav active':'nav'} key={id} onClick={()=>go(id)}><Icon size={19}/><span>{label}</span></button>)}</nav>
    <div className="sidefoot">MVP 0.2<br/><small>Inventário · inspeção · patologias · parametrização</small></div>
   </aside>
-  <main className="main"><header><button className="hamb" onClick={()=>setMenu(true)}><Menu/></button><div><div className="eyebrow">SEVEN M ATIVUS</div><h1>{view==='dashboard'?'Dashboard':view==='assets'?'Ativos / Inventário':view==='asset'?current?.name||'Ativo':nav.find(x=>x[0]===view)?.[1]||'Ativus'}</h1></div><div className="header-actions"><div className="sync">● Protótipo local</div><div className="user">JM</div></div></header>
+  <main className="main"><header><button className="hamb" onClick={()=>setMenu(true)}><Menu/></button><div><div className="eyebrow">SEVEN M ATIVUS</div><h1>{view==='dashboard'?'Dashboard':view==='assets'?'Ativos / Inventário':view==='asset'?current?.name||'Ativo':nav.find(x=>x[0]===view)?.[1]||'Ativus'}</h1></div><div className="header-actions"><div className={backendConfigured ? "sync backend-ready" : "sync"}>{backendConfigured ? "● Backend configurado" : "● Demonstração local"}</div><div className="user">JM</div></div></header>
    {view==='dashboard'&&<Dashboard assets={assets} inspections={inspections} pathologies={pathologies} onAssets={()=>go('assets')} onNew={addAsset}/>}
    {view==='assets'&&<Assets assets={filtered} query={query} setQuery={setQuery} onNew={addAsset} onOpen={id=>{setSelected(id);setView('asset')}}/>}
    {view==='asset'&&current&&<AssetDetail asset={current} inspections={inspections} pathologies={pathologies} onBack={()=>go('assets')} onNewInspection={()=>addInspection(current.id)} onNewPathology={addPathology}/>}
