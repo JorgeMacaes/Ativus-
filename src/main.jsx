@@ -124,7 +124,6 @@ function AuthGate(){
       emailRedirectTo: 'https://jorgemacaes.github.io/Ativus/'
     }
   });
-       : await supabase.auth.signUp({email:email.trim(),password});
      if(result.error)throw result.error;
      if(mode==='signup'&&!result.data?.session)setMessage('Conta criada. Confirma o endereço de email através da mensagem enviada antes de iniciares sessão.');
      else setMessage('Autenticação concluída.');
