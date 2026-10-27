@@ -118,6 +118,7 @@ function AuthGate(){
    try{
      const result=mode==='login'
   ? await supabase.auth.signInWithPassword({email:email.trim(),password})
+: await supabase.auth.signUp({
     email: email.trim(),
     password,
     options: {
