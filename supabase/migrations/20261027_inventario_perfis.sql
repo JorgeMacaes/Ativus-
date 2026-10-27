@@ -176,5 +176,54 @@ with check (
   )
 );
 
+
+-- Permitir que membros ativos vejam apenas a sua entidade e os seus empreendimentos.
+drop policy if exists entidades_membro_consultar on public.entidades;
+create policy entidades_membro_consultar
+on public.entidades for select to authenticated
+using (
+  public.utilizador_tem_perfil(
+    id,
+    array['administrador','gestor','tecnico','consulta']::text[]
+  )
+);
+
+drop policy if exists membros_consultar_proprios_ou_gestores on public.membros_entidade;
+create policy membros_consultar_proprios_ou_gestores
+on public.membros_entidade for select to authenticated
+using (
+  utilizador_id = auth.uid()
+  or public.utilizador_tem_perfil(
+    entidade_id,
+    array['administrador','gestor']::text[]
+  )
+);
+
+drop policy if exists empreendimentos_membros_consultar on public.empreendimentos;
+create policy empreendimentos_membros_consultar
+on public.empreendimentos for select to authenticated
+using (
+  public.utilizador_tem_perfil(
+    entidade_id,
+    array['administrador','gestor','tecnico','consulta']::text[]
+  )
+);
+
+drop policy if exists empreendimentos_gestores_gerir on public.empreendimentos;
+create policy empreendimentos_gestores_gerir
+on public.empreendimentos for all to authenticated
+using (
+  public.utilizador_tem_perfil(
+    entidade_id,
+    array['administrador','gestor']::text[]
+  )
+)
+with check (
+  public.utilizador_tem_perfil(
+    entidade_id,
+    array['administrador','gestor']::text[]
+  )
+);
+
 -- Nota: os utilizadores técnicos e de consulta só veem ativos atribuídos.
 -- A aplicação ainda precisa de autenticação e CRUD Supabase antes de usar estes dados.
