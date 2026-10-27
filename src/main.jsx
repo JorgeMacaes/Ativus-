@@ -2,7 +2,7 @@ import React,{useMemo,useState} from 'react';
 import {createRoot} from 'react-dom/client';
 import {Building2,ClipboardCheck,AlertTriangle,CalendarDays,Plus,Search,Settings,FileText,Activity,ChevronRight,Menu,X,LayoutDashboard,Boxes,Link2,Brain,ShieldCheck} from 'lucide-react';
 import './styles.css';
-import { backendConfigured } from './lib/supabase.js';
+import { backendConfigured, supabase } from './lib/supabase.js';
 
 const seedAssets=[
  {id:'ATV-0001',name:'Edifício Rua Central',type:'Edifício multifamiliar',location:'Porto',status:'Ativo',ec:2,maintenance:'Bom',components:12,pathologies:4},
@@ -97,4 +97,38 @@ function Module({icon:Icon,title,text}){return <section className="content"><div
 function AssetRow({a,onClick}){return <button className="assetrow" onClick={onClick}><div className="assetavatar"><Building2 size={19}/></div><div><strong>{a.name}</strong><span>{a.id} · {a.location}</span></div><Ec value={a.ec}/><ChevronRight size={17}/></button>}
 function Ec({value}){return <span className={'ec ec'+value}>EC {value}</span>}
 function Badge({value}){return <span className={'badge '+String(value).toLowerCase().replaceAll(' ','-')}>{value}</span>}
-createRoot(document.getElementById('root')).render(<App/>);
+function AuthGate(){
+ const [session,setSession]=useState(null);
+ const [loading,setLoading]=useState(true);
+ const [mode,setMode]=useState('login');
+ const [email,setEmail]=useState('');
+ const [password,setPassword]=useState('');
+ const [message,setMessage]=useState('');
+ const [busy,setBusy]=useState(false);
+ React.useEffect(()=>{
+   if(!supabase){setLoading(false);return}
+   supabase.auth.getSession().then(({data,error})=>{if(error)setMessage(error.message);setSession(data?.session||null);setLoading(false)});
+   const {data:{subscription}}=supabase.auth.onAuthStateChange((_event,nextSession)=>setSession(nextSession));
+   return ()=>subscription.unsubscribe();
+ },[]);
+ const submit=async(e)=>{
+   e.preventDefault();setMessage('');
+   if(!supabase){setMessage('A ligação ao Supabase ainda não está configurada nesta publicação.');return}
+   setBusy(true);
+   try{
+     const result=mode==='login'
+       ? await supabase.auth.signInWithPassword({email:email.trim(),password})
+       : await supabase.auth.signUp({email:email.trim(),password});
+     if(result.error)throw result.error;
+     if(mode==='signup'&&!result.data?.session)setMessage('Conta criada. Confirma o endereço de email através da mensagem enviada antes de iniciares sessão.');
+     else setMessage('Autenticação concluída.');
+   }catch(err){setMessage(err?.message||'Não foi possível concluir a autenticação.')}
+   finally{setBusy(false)}
+ };
+ const signOut=async()=>{await supabase?.auth.signOut();setSession(null)};
+ if(loading)return <div style={{minHeight:'100vh',display:'grid',placeItems:'center',background:'#f3f7fb',color:'#23415b'}}>A verificar sessão…</div>;
+ if(session)return <><div style={{position:'fixed',zIndex:1000,top:12,right:16,display:'flex',gap:10,alignItems:'center',background:'#fff',border:'1px solid #dbe5ee',borderRadius:12,padding:'8px 12px',fontSize:12,color:'#23415b'}}><span>{session.user?.email}</span><button onClick={signOut} style={{border:0,borderRadius:8,padding:'7px 10px',background:'#eaf1f7',color:'#23415b'}}>Terminar sessão</button></div><App/></>;
+ if(!backendConfigured)return <div style={{minHeight:'100vh',display:'grid',placeItems:'center',padding:24,background:'#f3f7fb',fontFamily:'Arial,sans-serif'}}><div style={{maxWidth:430,width:'100%',background:'#fff',border:'1px solid #dbe5ee',borderRadius:20,padding:28,boxSizing:'border-box'}}><div style={{color:'#2563a6',fontWeight:800,letterSpacing:2,fontSize:12}}>SEVEN M ATIVUS</div><h1 style={{color:'#173b59',fontSize:24}}>Acesso à plataforma</h1><p style={{color:'#52677a',lineHeight:1.5}}>A autenticação está preparada no código, mas falta configurar a ligação ao Supabase na publicação web. Não introduzas aqui a tua palavra-passe.</p><p style={{fontSize:12,color:'#52677a'}}>Estado: backend não configurado.</p></div></div>;
+ return <div style={{minHeight:'100vh',display:'grid',placeItems:'center',padding:24,background:'linear-gradient(135deg,#edf4fa,#f8fbfe)',fontFamily:'Arial,sans-serif',boxSizing:'border-box'}}><form onSubmit={submit} style={{maxWidth:420,width:'100%',background:'#fff',border:'1px solid #dbe5ee',borderRadius:20,padding:28,boxSizing:'border-box',boxShadow:'0 16px 45px rgba(25,65,95,.09)'}}><div style={{color:'#2563a6',fontWeight:800,letterSpacing:2,fontSize:12}}>SEVEN M ATIVUS</div><h1 style={{color:'#173b59',fontSize:25,marginBottom:8}}>{mode==='login'?'Iniciar sessão':'Criar conta'}</h1><p style={{color:'#52677a',lineHeight:1.5,fontSize:14}}>Acesso por email à plataforma de gestão de ativos.</p><label style={{display:'block',fontSize:13,fontWeight:700,color:'#23415b',marginTop:22}}>Email</label><input type="email" autoComplete="email" required value={email} onChange={e=>setEmail(e.target.value)} style={{width:'100%',boxSizing:'border-box',padding:12,border:'1px solid #cad8e5',borderRadius:9,marginTop:7,fontSize:16}}/><label style={{display:'block',fontSize:13,fontWeight:700,color:'#23415b',marginTop:16}}>Palavra-passe (mínimo 8 caracteres)</label><input type="password" autoComplete={mode==='login'?'current-password':'new-password'} minLength={8} required value={password} onChange={e=>setPassword(e.target.value)} style={{width:'100%',boxSizing:'border-box',padding:12,border:'1px solid #cad8e5',borderRadius:9,marginTop:7,fontSize:16}}/><button disabled={busy} type="submit" style={{width:'100%',marginTop:22,padding:13,border:0,borderRadius:10,background:'#1d5f91',color:'#fff',fontWeight:700,fontSize:15,opacity:busy?.7:1}}>{busy?'A processar…':mode==='login'?'Entrar':'Criar conta'}</button><button type="button" onClick={()=>{setMode(mode==='login'?'signup':'login');setMessage('')}} style={{width:'100%',marginTop:12,padding:10,border:'1px solid #dbe5ee',borderRadius:10,background:'#fff',color:'#1d5f91'}}>{mode==='login'?'Ainda não tens conta? Criar conta':'Já tens conta? Iniciar sessão'}</button>{message&&<p role="status" style={{marginTop:16,fontSize:13,lineHeight:1.5,color:'#23415b',overflowWrap:'anywhere'}}>{message}</p>}<p style={{marginTop:20,fontSize:11,color:'#708396',lineHeight:1.5}}>A criação de conta não atribui permissões de administrador. O acesso aos dados será controlado separadamente pelas políticas de segurança.</p></form></div>;
+}
+createRoot(document.getElementById('root')).render(<AuthGate/>);
