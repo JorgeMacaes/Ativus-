@@ -2,6 +2,10 @@
 -- Aplicar apenas no projeto Supabase correto, depois de rever este ficheiro.
 -- Não elimina nem altera as tabelas existentes.
 
+-- Necessário para garantir que o empreendimento pertence à mesma entidade.
+create unique index if not exists empreendimentos_entidade_id_unico
+  on public.empreendimentos(entidade_id, id);
+
 create table if not exists public.ativos (
   id uuid primary key default gen_random_uuid(),
   entidade_id uuid not null references public.entidades(id) on delete restrict,
