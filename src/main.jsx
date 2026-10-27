@@ -117,7 +117,7 @@ function AuthGate(){
    setBusy(true);
    try{
      const result=mode==='login'
-: await supabase.auth.signUp({
+  ? await supabase.auth.signInWithPassword({email:email.trim(),password})
     email: email.trim(),
     password,
     options: {
