@@ -116,14 +116,18 @@ function AuthGate(){
    if(!supabase){setMessage('A ligação ao Supabase ainda não está configurada nesta publicação.');return}
    setBusy(true);
    try{
-     const result=mode==='login'
+const result = mode === 'login'
+  ? await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password
+    })
   : await supabase.auth.signUp({
-  email: email.trim(),
-  password,
-  options: {
-    emailRedirectTo: 'https://jorgemacaes.github.io/Ativus/'
-  }
-});
+      email: email.trim(),
+      password,
+      options: {
+        emailRedirectTo: 'https://jorgemacaes.github.io/Ativus/'
+      }
+    });
      if(result.error)throw result.error;
      if(mode==='signup'&&!result.data?.session)setMessage('Conta criada. Confirma o endereço de email através da mensagem enviada antes de iniciares sessão.');
      else setMessage('Autenticação concluída.');
