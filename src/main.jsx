@@ -4,6 +4,9 @@ import {Building2,ClipboardCheck,AlertTriangle,CalendarDays,Plus,Search,Settings
 import './styles.css';
 import { backendConfigured, supabase } from './lib/supabase.js';
 
+const seedProjects=[
+ {id:'EMP-0001',name:'Edifício Rua Central',location:'Porto',type:'Edifício multifamiliar',status:'Em curso',description:'Empreendimento de demonstração'}
+];
 const seedAssets=[
  {id:'ATV-0001',name:'Edifício Rua Central',type:'Edifício multifamiliar',location:'Porto',status:'Ativo',ec:2,maintenance:'Bom',components:12,pathologies:4},
  {id:'ATV-0002',name:'Edifício Avenida da República',type:'Edifício multifamiliar',location:'Vila Nova de Gaia',status:'Ativo',ec:1,maintenance:'Razoável',components:8,pathologies:2}
@@ -25,6 +28,7 @@ function load(k,s){try{return JSON.parse(localStorage.getItem(k))||s}catch{retur
 function save(k,v){localStorage.setItem(k,JSON.stringify(v));return v}
 
 function App(){
+ const [projects,setProjects]=useState(()=>load('ativus_projects',seedProjects));
  const [assets,setAssets]=useState(()=>load('ativus_assets',seedAssets));
  const [inspections,setInspections]=useState(()=>load('ativus_inspections',seedInspections));
  const [pathologies,setPathologies]=useState(()=>load('ativus_pathologies',seedPathologies));
@@ -34,7 +38,7 @@ function App(){
  const [paramTab,setParamTab]=useState('relations');
  const filtered=useMemo(()=>assets.filter(a=>(a.name+' '+a.location+' '+a.id).toLowerCase().includes(query.toLowerCase())),[assets,query]);
  const current=selected?assets.find(a=>a.id===selected):null;
- const nav=[['dashboard','Dashboard',LayoutDashboard],['assets','Ativos / Inventário',Building2],['inspections','Inspeções',ClipboardCheck],['pathologies','Patologias',AlertTriangle],['agenda','Agenda',CalendarDays],['monitoring','Sistemas de Monitorização',Activity],['documents','Documentação',FileText],['settings','Parametrização',Settings]];
+ const nav=[['dashboard','Dashboard',LayoutDashboard],['projects','Empreendimentos',Building2],['assets','Ativos / Inventário',Building2],['inspections','Inspeções',ClipboardCheck],['pathologies','Patologias',AlertTriangle],['agenda','Agenda',CalendarDays],['monitoring','Sistemas de Monitorização',Activity],['documents','Documentação',FileText],['settings','Parametrização',Settings]];
  const go=id=>{setView(id);setMenu(false);if(id!=='asset')setSelected(null)};
  const addAsset=()=>{const name=window.prompt('Nome do ativo:');if(!name||!name.trim())return;const n=Math.max(0,...assets.map(a=>Number(String(a.id).replace(/\\D/g,''))||0))+1,a={id:'ATV-'+String(n).padStart(4,'0'),name:name.trim(),type:'Edifício residencial',location:'Por definir',status:'Ativo',ec:0,maintenance:'Bom',components:0,pathologies:0};const next=[a,...assets];setAssets(save('ativus_assets',next));setSelected(a.id);setView('asset')};
  const addInspection=asset=>{const n=inspections.length+1,i={id:'INS-'+String(n).padStart(4,'0'),asset,type:'Rotina',date:new Date().toISOString().slice(0,10),inspector:'Utilizador atual',ec:null,maintenance:'Bom',pathologies:0};setInspections(save('ativus_inspections',[i,...inspections]))};
@@ -44,7 +48,8 @@ function App(){
    <nav>{nav.map(([id,label,Icon])=><button className={view===id?'nav active':'nav'} key={id} onClick={()=>go(id)}><Icon size={19}/><span>{label}</span></button>)}</nav>
    <div className="sidefoot">MVP 0.2<br/><small>Inventário · inspeção · patologias · parametrização</small></div>
   </aside>
-  <main className="main"><header><button className="hamb" onClick={()=>setMenu(true)}><Menu/></button><div><div className="eyebrow">SEVEN M ATIVUS</div><h1>{view==='dashboard'?'Dashboard':view==='assets'?'Ativos / Inventário':view==='asset'?current?.name||'Ativo':nav.find(x=>x[0]===view)?.[1]||'Ativus'}</h1></div><div className="header-actions"><div className={backendConfigured ? "sync backend-ready" : "sync"}>{backendConfigured ? "● Backend configurado" : "● Demonstração local"}</div><div className="user">JM</div></div></header>
+  <main className="main"><header><button className="hamb" onClick={()=>setMenu(true)}><Menu/></button><div><div className="eyebrow">SEVEN M ATIVUS</div><h1>{view==='dashboard'?'Dashboard':view==='projects'?'Empreendimentos':view==='assets'?'Ativos / Inventário':view==='asset'?current?.name||'Ativo':nav.find(x=>x[0]===view)?.[1]||'Ativus'}</h1></div><div className="header-actions"><div className={backendConfigured ? "sync backend-ready" : "sync"}>{backendConfigured ? "● Backend configurado" : "● Demonstração local"}</div><div className="user">JM</div></div></header>
+   {view==='projects'&&<Projects projects={projects} onNew={()=>{const name=window.prompt('Nome do empreendimento:');if(!name||!name.trim())return;const location=window.prompt('Localização:')||'Por definir';const type=window.prompt('Tipo de empreendimento:')||'Por definir';const description=window.prompt('Descrição:')||'';const n=Math.max(0,...projects.map(p=>Number(String(p.id).replace(/\D/g,''))||0))+1;const project={id:'EMP-'+String(n).padStart(4,'0'),name:name.trim(),location,type,description,status:'Em curso'};setProjects(save('ativus_projects',[project,...projects]));}}/>}
    {view==='dashboard'&&<Dashboard assets={assets} inspections={inspections} pathologies={pathologies} onAssets={()=>go('assets')} onNew={addAsset}/>}
    {view==='assets'&&<Assets assets={filtered} query={query} setQuery={setQuery} onNew={addAsset} onOpen={id=>{setSelected(id);setView('asset')}}/>}
    {view==='asset'&&current&&<AssetDetail asset={current} inspections={inspections} pathologies={pathologies} onBack={()=>go('assets')} onNewInspection={()=>addInspection(current.id)} onNewPathology={addPathology}/>}
@@ -57,6 +62,7 @@ function App(){
   </main>
  </div>
 }
+function Projects({projects,onNew}){return <section className="content"><div className="toolbar"><div><h2 className="sectiontitle">Empreendimentos</h2><p className="muted">Registo e organização dos empreendimentos geridos pela Seven M Ativus.</p></div><button className="primary" onClick={onNew}><Plus size={18}/> Novo empreendimento</button></div><div className="panel table"><div className="thead"><span>Código / Empreendimento</span><span>Localização</span><span>Tipo</span><span>Estado</span><span></span></div>{projects.length?projects.map(p=><div className="trow" key={p.id}><div><strong>{p.name}</strong><small>{p.id}{p.description?' · '+p.description:''}</small></div><span>{p.location}</span><span>{p.type}</span><span className="green">● {p.status}</span><span/></div>):<p className="empty">Ainda não existem empreendimentos. Selecione «Novo empreendimento» para criar o primeiro registo.</p>}</div><p className="muted">Nota: nesta versão, os registos são guardados neste navegador. A gravação partilhada na base de dados Supabase ainda precisa de ser integrada.</p></section>}
 function Dashboard({assets,inspections,pathologies,onAssets,onNew}){
  const open=pathologies.filter(p=>!['Encerrada','Verificada'].includes(p.status)).length;
  const ecCounts=[0,1,2,3,4,5].map(ec=>({label:'EC '+ec,value:assets.filter(a=>Number(a.ec)===ec).length}));
