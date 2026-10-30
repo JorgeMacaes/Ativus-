@@ -24,3 +24,10 @@
 .dashfoot{display:flex;align-items:flex-start;gap:10px;padding:14px 16px;margin-top:16px;border:1px solid #dce7ed;border-radius:10px;background:#f7fafc;color:#6e8492;font-size:11px;line-height:1.5}
 .dashfoot svg{flex-shrink:0;color:#47748e}.dashfoot b{color:#34576e}
 @media(max-width:900px){.dashgrid{grid-template-columns:1fr}.chartpanel{padding:16px}.ecbars{gap:8px}}
+
+/* Identidade visual Seven M Ativus */
+.brand{min-height:76px;align-items:center;padding:4px 10px 24px}
+.brand-logo{display:block;width:174px;max-width:calc(100% - 28px);height:auto;object-fit:contain}
+.page-heading{display:flex;flex-direction:column;align-items:flex-start;gap:3px}
+.header-brand-logo{display:block;width:142px;height:auto;max-height:40px;object-fit:contain;margin-bottom:2px}
+@media(max-width:480px){.brand-logo{width:160px}.header-brand-logo{width:116px;max-height:34px}}
