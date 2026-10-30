@@ -229,7 +229,7 @@ const result = mode === 'login'
       email: email.trim(),
       password,
       options: {
-        emailRedirectTo: 'https://jorgemacaes.github.io/Ativus/'
+        emailRedirectTo: 'https://jorgemacaes.github.io/Ativus-/'
       }
     });
      if(result.error)throw result.error;
