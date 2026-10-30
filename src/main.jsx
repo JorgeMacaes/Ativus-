@@ -1,6 +1,6 @@
 import React,{useMemo,useState} from 'react';
 import {createRoot} from 'react-dom/client';
-import {Building2,ClipboardCheck,AlertTriangle,CalendarDays,Plus,Search,Settings,FileText,Activity,ChevronRight,Menu,X,LayoutDashboard,Boxes,Link2,Brain,ShieldCheck,Truck,BadgeCheck,CreditCard} from 'lucide-react';
+import {Building2,ClipboardCheck,AlertTriangle,CalendarDays,Plus,Search,Settings,FileText,Activity,ChevronRight,Menu,X,LayoutDashboard,Boxes,Link2,Brain,ShieldCheck,Truck,BadgeCheck,CreditCard,ContactRound,Users,Handshake,Mail,Phone,RefreshCw} from 'lucide-react';
 import './styles.css';
 import { backendConfigured, supabase } from './lib/supabase.js';
 
@@ -44,7 +44,7 @@ function App(){
  const [projectError,setProjectError]=useState('');
  const filtered=useMemo(()=>assets.filter(a=>(a.name+' '+a.location+' '+a.id).toLowerCase().includes(query.toLowerCase())),[assets,query]);
  const current=selected?assets.find(a=>a.id===selected):null;
- const nav=[['dashboard','Dashboard',LayoutDashboard],['projects','Empreendimentos',Building2],['assets','Ativos / Inventário',Building2],['inspections','Inspeções',ClipboardCheck],['pathologies','Patologias',AlertTriangle],['agenda','Agenda',CalendarDays],['monitoring','Sistemas de Monitorização',Activity],['documents','Documentação',FileText],['suppliers','Fornecedores e Licenças',Truck],['settings','Parametrização',Settings]];
+ const nav=[['dashboard','Dashboard',LayoutDashboard],['projects','Empreendimentos',Building2],['assets','Ativos / Inventário',Building2],['inspections','Inspeções',ClipboardCheck],['pathologies','Patologias',AlertTriangle],['agenda','Agenda',CalendarDays],['monitoring','Sistemas de Monitorização',Activity],['documents','Documentação',FileText],['crm','CRM · Clientes e Contactos',ContactRound],['suppliers','Fornecedores e Licenças',Truck],['settings','Parametrização',Settings]];
  const go=id=>{setView(id);setMenu(false);if(id!=='asset')setSelected(null);if(id!=='project')setSelectedProject(null)};
  const addAsset=()=>{const name=window.prompt('Nome do ativo:');if(!name||!name.trim())return;const n=Math.max(0,...assets.map(a=>Number(String(a.id).replace(/\\D/g,''))||0))+1,a={id:'ATV-'+String(n).padStart(4,'0'),name:name.trim(),type:'Edifício residencial',location:'Por definir',status:'Ativo',ec:0,maintenance:'Bom',components:0,pathologies:0};const next=[a,...assets];setAssets(save('ativus_assets',next));setSelected(a.id);setView('asset')};
  const addInspection=asset=>{const n=inspections.length+1,i={id:'INS-'+String(n).padStart(4,'0'),asset,type:'Rotina',date:new Date().toISOString().slice(0,10),inspector:'Utilizador atual',ec:null,maintenance:'Bom',pathologies:0};setInspections(save('ativus_inspections',[i,...inspections]))};
@@ -55,7 +55,7 @@ function App(){
    <div className="sidefoot">MVP 0.2<br/><small>Inventário · inspeção · patologias · parametrização</small></div>
   </aside>
   <main className="main"><header><button className="hamb" onClick={()=>setMenu(true)}><Menu/></button><div className="page-heading"><img className="header-brand-logo" src={import.meta.env.BASE_URL+'seven-m-ativus.svg'} alt="Seven M Ativus"/><h1>{view==='dashboard'?'Dashboard':view==='projects'?'Empreendimentos':view==='project'?selectedProject?.name||'Empreendimento':view==='assets'?'Ativos / Inventário':view==='asset'?current?.name||'Ativo':nav.find(x=>x[0]===view)?.[1]||'Ativus'}</h1></div><div className="header-actions"><div className={backendConfigured ? "sync backend-ready" : "sync"}>{backendConfigured ? "● Backend configurado" : "● Demonstração local"}</div><div className="user">JM</div></div></header>
-   {view==='suppliers'&&<Suppliers />}
+   {view==='crm'&&<CRM />}\n   {view==='suppliers'&&<Suppliers />}
    {view==='projects'&&<Projects projects={projects} onNew={()=>{setProjectForm({name:'',location:'',type:'',description:''});setProjectError('');setProjectFormOpen(true);}} onOpen={p=>{setSelectedProject(p);setView('project');}}/>}
    {view==='project'&&selectedProject&&<ProjectDetail project={selectedProject} assets={assets} onBack={()=>go('projects')}/ >}
    {projectFormOpen&&<div role="presentation" onClick={()=>setProjectFormOpen(false)} style={{position:'fixed',inset:0,zIndex:2000,background:'rgba(10,28,44,.58)',display:'grid',placeItems:'center',padding:18}}>
@@ -84,6 +84,92 @@ function App(){
 }
 function Projects({projects,onNew,onOpen}){return <section className="content"><div className="toolbar"><div><h2 className="sectiontitle">Empreendimentos</h2><p className="muted">Registo e organização dos empreendimentos geridos pela Seven M Ativus.</p></div><button className="primary" onClick={onNew}><Plus size={18}/> Novo empreendimento</button></div><div className="panel table"><div className="thead"><span>Código / Empreendimento</span><span>Localização</span><span>Tipo</span><span>Estado</span><span></span></div>{projects.length?projects.map(p=><div className="trow" key={p.id} role="button" tabIndex={0} onClick={()=>onOpen(p)} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onOpen(p)}}} style={{cursor:'pointer'}}><div><strong>{p.name}</strong><small>{p.id}{p.description?' · '+p.description:''}</small></div><span>{p.location}</span><span>{p.type}</span><span className="green">● {p.status}</span><span><button type="button" className="secondary" onClick={e=>{e.stopPropagation();onOpen(p);}}>Ver detalhes <ChevronRight size={16}/></button></span></div>):<p className="empty">Ainda não existem empreendimentos. Selecione «Novo empreendimento» para criar o primeiro registo.</p>}</div><p className="muted">Nota: nesta versão, os registos são guardados neste navegador. A gravação partilhada na base de dados Supabase ainda precisa de ser integrada.</p></section>}
 function ProjectDetail({project,assets,onBack}){const linked=assets.filter(a=>a.projectId===project.id);return <section className="content"><div className="toolbar"><div><span className="eyebrow">FICHA DO EMPREENDIMENTO</span><h2 className="sectiontitle">{project.name}</h2><p className="muted">{project.id}</p></div><button className="secondary" onClick={onBack}>Voltar à lista</button></div><div className="panel" style={{padding:20,display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(190px,1fr))',gap:18}}><div><small className="muted">Localização</small><p><strong>{project.location||'Não indicada'}</strong></p></div><div><small className="muted">Tipo de empreendimento</small><p><strong>{project.type||'Não definido'}</strong></p></div><div><small className="muted">Estado</small><p className="green"><strong>● {project.status||'Em curso'}</strong></p></div><div><small className="muted">Código</small><p><strong>{project.id}</strong></p></div><div style={{gridColumn:'1/-1'}}><small className="muted">Descrição</small><p>{project.description||'Sem descrição registada.'}</p></div></div><div className="panel" style={{padding:20,marginTop:16}}><h3>Ativos associados</h3>{linked.length?linked.map(a=><div key={a.id} className="trow"><strong>{a.name}</strong><span>{a.id}</span><span>{a.location}</span></div>):<p className="muted">Ainda não existem ativos associados a este empreendimento. Poderemos associá-los numa próxima etapa.</p>}</div><p className="muted">Os dados desta versão são guardados localmente neste navegador.</p></section>}
+
+function CRM(){
+ const [loading,setLoading]=useState(true);
+ const [saving,setSaving]=useState(false);
+ const [space,setSpace]=useState(null);
+ const [contacts,setContacts]=useState([]);
+ const [relationships,setRelationships]=useState([]);
+ const [formOpen,setFormOpen]=useState(false);
+ const [form,setForm]=useState({nome:'',cargo:'',email:'',telefone:'',notas:''});
+ const [filter,setFilter]=useState('');
+ const [error,setError]=useState('');
+ const [message,setMessage]=useState('');
+ const loadCRM=async()=>{
+  if(!supabase){setError('A ligação ao Supabase não está configurada.');setLoading(false);return;}
+  setLoading(true);setError('');
+  try{
+   const {data:userData,error:userError}=await supabase.auth.getUser();
+   if(userError)throw userError;
+   if(!userData?.user)throw new Error('Inicia sessão para aceder ao CRM.');
+   const {data:spaces,error:spaceError}=await supabase.from('crm_espacos').select('id,nome,entidade_id').eq('ativo',true).limit(1);
+   if(spaceError)throw spaceError;
+   if(!spaces?.length)throw new Error('Não existe um espaço CRM associado a esta conta. Solicita à administração a atribuição de acesso.');
+   const activeSpace=spaces[0];setSpace(activeSpace);
+   const [contactResult,relationResult]=await Promise.all([
+    supabase.from('crm_contactos').select('id,nome,cargo,email,telefone,notas,ativo,criado_em').eq('crm_espaco_id',activeSpace.id).eq('ativo',true).order('nome'),
+    supabase.from('crm_relacionamentos').select('id,entidade_fornecedor_id,origem,estado,notas,criado_em').eq('crm_espaco_id',activeSpace.id).order('criado_em',{ascending:false})
+   ]);
+   if(contactResult.error)throw contactResult.error;
+   if(relationResult.error)throw relationResult.error;
+   setContacts(contactResult.data||[]);setRelationships(relationResult.data||[]);
+  }catch(e){setError(e?.message||'Não foi possível carregar o CRM.');}
+  finally{setLoading(false);}
+ };
+ React.useEffect(()=>{loadCRM();},[]);
+ const submit=async(e)=>{
+  e.preventDefault();if(!space)return;
+  setSaving(true);setError('');setMessage('');
+  try{
+   const {data:userData,error:userError}=await supabase.auth.getUser();
+   if(userError)throw userError;
+   const {error:insertError}=await supabase.from('crm_contactos').insert({
+    crm_espaco_id:space.id,nome:form.nome.trim(),cargo:form.cargo.trim()||null,
+    email:form.email.trim()||null,telefone:form.telefone.trim()||null,
+    notas:form.notas.trim()||null,criado_por:userData.user.id
+   });
+   if(insertError)throw insertError;
+   setForm({nome:'',cargo:'',email:'',telefone:'',notas:''});setFormOpen(false);
+   setMessage('Contacto guardado no CRM.');await loadCRM();
+  }catch(e){setError(e?.message||'Não foi possível guardar o contacto.');}
+  finally{setSaving(false);}
+ };
+ const filtered=contacts.filter(x=>(x.nome+' '+(x.cargo||'')+' '+(x.email||'')+' '+(x.telefone||'')).toLowerCase().includes(filter.toLowerCase()));
+ if(loading)return <section className="content"><div className="panel" style={{padding:24}}>A carregar o CRM…</div></section>;
+ return <section className="content">
+  <div className="toolbar"><div><h2 className="sectiontitle">CRM · Gestão de relações</h2><p className="muted">Espaço: {space?.nome||'Não identificado'} · informação privada desta organização.</p></div><div style={{display:'flex',gap:8,flexWrap:'wrap'}}><button className="secondary" onClick={loadCRM}><RefreshCw size={16}/> Atualizar</button><button className="primary" onClick={()=>setFormOpen(true)}><Plus size={17}/> Novo contacto</button></div></div>
+  {error&&<div className="panel" role="alert" style={{padding:14,marginBottom:14,borderLeft:'4px solid #b42318',color:'#8f1d1d'}}>{error}</div>}
+  {message&&<div className="panel" role="status" style={{padding:14,marginBottom:14,borderLeft:'4px solid #16835d',color:'#176344'}}>{message}</div>}
+  <div className="stats">
+   <Stat icon={Users} label="Contactos ativos" value={contacts.length}/>
+   <Stat icon={Handshake} label="Relações com fornecedores" value={relationships.length}/>
+   <Stat icon={Mail} label="Contactos com email" value={contacts.filter(x=>x.email).length}/>
+   <Stat icon={Phone} label="Contactos com telefone" value={contacts.filter(x=>x.telefone).length}/>
+  </div>
+  <div className="panel" style={{padding:18,marginTop:18}}>
+   <div className="panelhead"><div><h3>Contactos</h3><span>Registos de pessoas de contacto associados ao espaço CRM.</span></div><div className="search"><Search size={17}/><input value={filter} onChange={e=>setFilter(e.target.value)} placeholder="Pesquisar contacto…"/></div></div>
+   {filtered.length?<div className="table"><div className="thead"><span>Nome / Função</span><span>Email</span><span>Telefone</span><span>Registo</span></div>{filtered.map(x=><div className="trow" key={x.id}><div><strong>{x.nome}</strong><small>{x.cargo||'Função não indicada'}</small></div><span>{x.email||'—'}</span><span>{x.telefone||'—'}</span><span className="green">● Ativo</span></div>)}</div>:<p className="empty">Ainda não existem contactos neste CRM. Utilize «Novo contacto» para criar o primeiro registo.</p>}
+  </div>
+  <div className="panel" style={{padding:18,marginTop:18}}>
+   <div className="panelhead"><div><h3>Relacionamentos com fornecedores</h3><span>Associações privadas entre esta organização e a rede global.</span></div><span className="pill">{relationships.length} relações</span></div>
+   {relationships.length?relationships.map(r=><div className="listrow" key={r.id}><div><strong>Fornecedor · {r.entidade_fornecedor_id.slice(0,8)}…</strong><span>{r.origem==='rede_global'?'Rede global':'Relação privada'} · {r.estado}</span></div><Badge value={r.estado}/></div>):<p className="empty">Ainda não existem fornecedores associados a este espaço. A associação será disponibilizada na gestão de empresas, com validação de permissões.</p>}
+  </div>
+  {formOpen&&<div role="presentation" onClick={()=>setFormOpen(false)} style={{position:'fixed',inset:0,zIndex:2100,background:'rgba(10,28,44,.58)',display:'grid',placeItems:'center',padding:18}}>
+   <form onSubmit={submit} onClick={e=>e.stopPropagation()} style={{width:'100%',maxWidth:520,maxHeight:'90vh',overflowY:'auto',background:'#fff',borderRadius:16,padding:22,boxSizing:'border-box'}}>
+    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}><div><span className="eyebrow">CRM · CONTACTOS</span><h2 style={{margin:'8px 0',color:'#173b59'}}>Novo contacto</h2></div><button type="button" className="secondary" onClick={()=>setFormOpen(false)}><X size={18}/></button></div>
+    <label style={{display:'block',marginTop:12,fontWeight:700}}>Nome *</label><input required value={form.nome} onChange={e=>setForm({...form,nome:e.target.value})} style={{width:'100%',boxSizing:'border-box',marginTop:5,padding:11,border:'1px solid #cad8e5',borderRadius:8}}/>
+    <label style={{display:'block',marginTop:12,fontWeight:700}}>Cargo / Função</label><input value={form.cargo} onChange={e=>setForm({...form,cargo:e.target.value})} style={{width:'100%',boxSizing:'border-box',marginTop:5,padding:11,border:'1px solid #cad8e5',borderRadius:8}}/>
+    <label style={{display:'block',marginTop:12,fontWeight:700}}>Email</label><input type="email" value={form.email} onChange={e=>setForm({...form,email:e.target.value})} style={{width:'100%',boxSizing:'border-box',marginTop:5,padding:11,border:'1px solid #cad8e5',borderRadius:8}}/>
+    <label style={{display:'block',marginTop:12,fontWeight:700}}>Telefone</label><input value={form.telefone} onChange={e=>setForm({...form,telefone:e.target.value})} style={{width:'100%',boxSizing:'border-box',marginTop:5,padding:11,border:'1px solid #cad8e5',borderRadius:8}}/>
+    <label style={{display:'block',marginTop:12,fontWeight:700}}>Notas</label><textarea rows={3} value={form.notas} onChange={e=>setForm({...form,notas:e.target.value})} style={{width:'100%',boxSizing:'border-box',marginTop:5,padding:11,border:'1px solid #cad8e5',borderRadius:8}}/>
+    <p className="muted" style={{fontSize:12}}>O contacto ficará visível apenas aos utilizadores autorizados neste espaço CRM.</p>
+    <div style={{display:'flex',justifyContent:'flex-end',gap:8,marginTop:16}}><button type="button" className="secondary" onClick={()=>setFormOpen(false)}>Cancelar</button><button type="submit" className="primary" disabled={saving}>{saving?'A guardar…':'Guardar contacto'}</button></div>
+   </form>
+  </div>}
+ </section>;
+}
+
 function Suppliers(){
  const [loading,setLoading]=useState(true);
  const [saving,setSaving]=useState(false);
