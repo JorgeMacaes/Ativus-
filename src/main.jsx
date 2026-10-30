@@ -4,6 +4,7 @@ import {Building2,ClipboardCheck,AlertTriangle,CalendarDays,Plus,Search,Settings
 import './styles.css';
 import { backendConfigured, supabase } from './lib/supabase.js';
 import CRMCompanies from './CRMCompanies.jsx';
+import AtivusProjects from './AtivusProjects.jsx';
 
 const seedProjects=[
  {id:'EMP-0001',name:'Edifício Rua Central',location:'Porto',type:'Edifício multifamiliar',status:'Em curso',description:'Empreendimento de demonstração'}
@@ -57,8 +58,7 @@ function App(){
   </aside>
   <main className="main"><header><button className="hamb" onClick={()=>setMenu(true)}><Menu/></button><div className="page-heading"><img className="header-brand-logo" src={import.meta.env.BASE_URL+'seven-m-ativus.svg'} alt="Seven M Ativus"/><h1>{view==='dashboard'?'Dashboard':view==='projects'?'Empreendimentos':view==='project'?selectedProject?.name||'Empreendimento':view==='assets'?'Ativos / Inventário':view==='asset'?current?.name||'Ativo':nav.find(x=>x[0]===view)?.[1]||'Ativus'}</h1></div><div className="header-actions"><div className={backendConfigured ? "sync backend-ready" : "sync"}>{backendConfigured ? "● Backend configurado" : "● Demonstração local"}</div><div className="user">JM</div></div></header>
    {view==='crm'&&<CRM />}\n   {view==='suppliers'&&<Suppliers />}
-   {view==='projects'&&<Projects projects={projects} onNew={()=>{setProjectForm({name:'',location:'',type:'',description:''});setProjectError('');setProjectFormOpen(true);}} onOpen={p=>{setSelectedProject(p);setView('project');}}/>}
-   {view==='project'&&selectedProject&&<ProjectDetail project={selectedProject} assets={assets} onBack={()=>go('projects')}/ >}
+   {(view==='projects'||view==='project')&&<AtivusProjects/>}
    {projectFormOpen&&<div role="presentation" onClick={()=>setProjectFormOpen(false)} style={{position:'fixed',inset:0,zIndex:2000,background:'rgba(10,28,44,.58)',display:'grid',placeItems:'center',padding:18}}>
     <form onSubmit={e=>{e.preventDefault();if(!projectForm.name.trim()||!projectForm.location.trim()||!projectForm.type){setProjectError('Preencha o nome, a localização e o tipo de empreendimento.');return;}const n=Math.max(0,...projects.map(p=>Number(String(p.id).replace(/\\D/g,''))||0))+1;const project={id:'EMP-'+String(n).padStart(4,'0'),name:projectForm.name.trim(),location:projectForm.location.trim(),type:projectForm.type,description:projectForm.description.trim(),status:'Em curso'};setProjects(save('ativus_projects',[project,...projects]));setProjectFormOpen(false);}} onClick={e=>e.stopPropagation()} style={{width:'100%',maxWidth:520,maxHeight:'90vh',overflowY:'auto',background:'#fff',borderRadius:18,padding:22,boxSizing:'border-box',boxShadow:'0 20px 60px rgba(0,0,0,.25)'}}>
      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:12}}><div><span className="eyebrow">SEVEN M ATIVUS</span><h2 style={{margin:'8px 0 4px',color:'#173b59'}}>Novo empreendimento</h2><p className="muted" style={{marginTop:0}}>Introduza os dados do empreendimento.</p></div><button type="button" className="secondary" onClick={()=>setProjectFormOpen(false)} aria-label="Fechar"><X size={18}/></button></div>
