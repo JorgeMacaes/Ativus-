@@ -155,6 +155,10 @@ as $$
       and l.estado = 'ativa'
       and f.estado_registo = 'validado'
       and (l.validade_ate is null or l.validade_ate >= current_date)
+      and exists (
+        select 1 from public.pagamentos_licenca p
+        where p.licenca_id = l.id and p.estado = 'pago'
+      )
   );
 $$;
 
@@ -227,7 +231,7 @@ using (
   public.utilizador_e_admin_plataforma()
   or exists (
     select 1 from public.fornecedor_utilizadores fu
-    where fu.fornecedor_id = fornecedor_id
+    where fu.fornecedor_id = licencas_fornecedor.fornecedor_id
       and fu.utilizador_id = auth.uid()
       and fu.ativo = true
   )
@@ -248,7 +252,7 @@ using (
     select 1
     from public.licencas_fornecedor l
     join public.fornecedor_utilizadores fu on fu.fornecedor_id = l.fornecedor_id
-    where l.id = licenca_id
+    where l.id = pagamentos_licenca.licenca_id
       and fu.utilizador_id = auth.uid()
       and fu.ativo = true
   )
@@ -278,7 +282,7 @@ using (
   public.utilizador_e_admin_plataforma()
   or exists (
     select 1 from public.fornecedor_utilizadores fu
-    where fu.fornecedor_id = fornecedor_id
+    where fu.fornecedor_id = fornecedor_especialidades.fornecedor_id
       and fu.utilizador_id = auth.uid()
       and fu.ativo = true
   )
@@ -297,7 +301,7 @@ using (
   public.utilizador_e_admin_plataforma()
   or exists (
     select 1 from public.fornecedor_utilizadores fu
-    where fu.fornecedor_id = fornecedor_id
+    where fu.fornecedor_id = fornecedor_zonas.fornecedor_id
       and fu.utilizador_id = auth.uid()
       and fu.ativo = true
   )
