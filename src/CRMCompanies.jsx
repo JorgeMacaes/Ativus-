@@ -5,19 +5,16 @@ import {supabase} from './lib/supabase.js';
 const empty={nome:'',nif:'',morada:'',codigo_postal:'',localidade:'',concelho:'',distrito:'',email_geral:'',telefone_geral:'',website:'',natureza_juridica:'',cae:'',papel_cliente:true,papel_fornecedor:false};
 const labels={morada:'Morada',codigo_postal:'Código postal',localidade:'Localidade',concelho:'Concelho',distrito:'Distrito',natureza_juridica:'Natureza jurídica',cae:'CAE',email_geral:'Email geral',telefone_geral:'Telefone geral',website:'Website'};
 
-export default function CRMCompanies(){
+export default function CRMCompanies({spaceId}){
  const [rows,setRows]=useState([]),[roles,setRoles]=useState({}),[filter,setFilter]=useState('');
  const [open,setOpen]=useState(false),[form,setForm]=useState(empty),[saving,setSaving]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState('');
  const load=async()=>{
-  const [a,b]=await Promise.all([
-   supabase.from('entidades').select('id,nome,nif,morada,codigo_postal,localidade,concelho,distrito,email_geral,telefone_geral,website,natureza_juridica,cae').order('nome'),
-   supabase.from('entidade_papeis').select('entidade_id,papel,ativo').eq('ativo',true)
-  ]);
-  if(a.error)throw a.error;if(b.error)throw b.error;
-  const map={};(b.data||[]).forEach(x=>{(map[x.entidade_id] ||= []).push(x.papel);});
-  setRows(a.data||[]);setRoles(map);
+  const {data,error}=await supabase.from('crm_empresas').select('entidade_id,papel,estado,entidades(id,nome,nif,morada,codigo_postal,localidade,concelho,distrito,email_geral,telefone_geral,website,natureza_juridica,cae)').eq('crm_espaco_id',spaceId).eq('estado','ativo');
+  if(error)throw error;
+  const map={},unique={};(data||[]).forEach(x=>{(map[x.entidade_id] ||= []).push(x.papel);if(x.entidades)unique[x.entidade_id]=x.entidades;});
+  setRows(Object.values(unique));setRoles(map);
  };
- useEffect(()=>{load().catch(e=>setError(e.message));},[]);
+ useEffect(()=>{if(spaceId)load().catch(e=>setError(e.message));},[spaceId]);
  const save=async e=>{
   e.preventDefault();setSaving(true);setError('');setMessage('');
   try{
@@ -29,11 +26,11 @@ export default function CRMCompanies(){
    if(lookup)throw lookup;let id;
    if(existing){id=existing.id;const {error}=await supabase.from('entidades').update(payload).eq('id',id);if(error)throw error;}
    else{const {data,error}=await supabase.from('entidades').insert(payload).select('id').single();if(error)throw error;id=data.id;}
+   const {data:userData,error:userError}=await supabase.auth.getUser();if(userError)throw userError;
    const wanted=[...(form.papel_cliente?['cliente']:[]),...(form.papel_fornecedor?['fornecedor']:[])];
    for(const papel of wanted){
-    const {data:role,error:readError}=await supabase.from('entidade_papeis').select('id').eq('entidade_id',id).eq('papel',papel).maybeSingle();
-    if(readError)throw readError;
-    if(!role){const {error}=await supabase.from('entidade_papeis').insert({entidade_id:id,papel,origem:'manual',ativo:true});if(error)throw error;}
+    const {error:linkError}=await supabase.from('crm_empresas').upsert({crm_espaco_id:spaceId,entidade_id:id,papel,estado:'ativo',criado_por:userData.user.id},{onConflict:'crm_espaco_id,entidade_id,papel'});
+    if(linkError)throw linkError;
    }
    setForm(empty);setOpen(false);setMessage(existing?'Ficha existente atualizada; papéis associados.':'Empresa registada com sucesso.');await load();
   }catch(e){setError(e.message||'Erro ao guardar empresa.');}
