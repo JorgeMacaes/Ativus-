@@ -3,6 +3,7 @@ import {createRoot} from 'react-dom/client';
 import {Building2,ClipboardCheck,AlertTriangle,CalendarDays,Plus,Search,Settings,FileText,Activity,ChevronRight,Menu,X,LayoutDashboard,Boxes,Link2,Brain,ShieldCheck,Truck,BadgeCheck,CreditCard,ContactRound,Users,Handshake,Mail,Phone,RefreshCw} from 'lucide-react';
 import './styles.css';
 import { backendConfigured, supabase } from './lib/supabase.js';
+import CRMCompanies from './CRMCompanies.jsx';
 
 const seedProjects=[
  {id:'EMP-0001',name:'Edifício Rua Central',location:'Porto',type:'Edifício multifamiliar',status:'Em curso',description:'Empreendimento de demonstração'}
@@ -139,6 +140,7 @@ function CRM(){
  if(loading)return <section className="content"><div className="panel" style={{padding:24}}>A carregar o CRM…</div></section>;
  return <section className="content">
   <div className="toolbar"><div><h2 className="sectiontitle">CRM · Gestão de relações</h2><p className="muted">Espaço: {space?.nome||'Não identificado'} · informação privada desta organização.</p></div><div style={{display:'flex',gap:8,flexWrap:'wrap'}}><button className="secondary" onClick={loadCRM}><RefreshCw size={16}/> Atualizar</button><button className="primary" onClick={()=>setFormOpen(true)}><Plus size={17}/> Novo contacto</button></div></div>
+  <CRMCompanies />
   {error&&<div className="panel" role="alert" style={{padding:14,marginBottom:14,borderLeft:'4px solid #b42318',color:'#8f1d1d'}}>{error}</div>}
   {message&&<div className="panel" role="status" style={{padding:14,marginBottom:14,borderLeft:'4px solid #16835d',color:'#176344'}}>{message}</div>}
   <div className="stats">
