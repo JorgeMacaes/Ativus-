@@ -55,7 +55,7 @@ function App(){
    <div className="sidefoot">MVP 0.2<br/><small>Inventário · inspeção · patologias · parametrização</small></div>
   </aside>
   <main className="main"><header><button className="hamb" onClick={()=>setMenu(true)}><Menu/></button><div className="page-heading"><img className="header-brand-logo" src={import.meta.env.BASE_URL+'seven-m-ativus.svg'} alt="Seven M Ativus"/><h1>{view==='dashboard'?'Dashboard':view==='projects'?'Empreendimentos':view==='project'?selectedProject?.name||'Empreendimento':view==='assets'?'Ativos / Inventário':view==='asset'?current?.name||'Ativo':nav.find(x=>x[0]===view)?.[1]||'Ativus'}</h1></div><div className="header-actions"><div className={backendConfigured ? "sync backend-ready" : "sync"}>{backendConfigured ? "● Backend configurado" : "● Demonstração local"}</div><div className="user">JM</div></div></header>
-   {view==='suppliers'&&<Suppliers suppliers={suppliers} onSave={s=>setSuppliers(save('ativus_suppliers',[s,...suppliers]))} onChange={next=>setSuppliers(save('ativus_suppliers',next))} />}
+   {view==='suppliers'&&<Suppliers />}
    {view==='projects'&&<Projects projects={projects} onNew={()=>{setProjectForm({name:'',location:'',type:'',description:''});setProjectError('');setProjectFormOpen(true);}} onOpen={p=>{setSelectedProject(p);setView('project');}}/>}
    {view==='project'&&selectedProject&&<ProjectDetail project={selectedProject} assets={assets} onBack={()=>go('projects')}/ >}
    {projectFormOpen&&<div role="presentation" onClick={()=>setProjectFormOpen(false)} style={{position:'fixed',inset:0,zIndex:2000,background:'rgba(10,28,44,.58)',display:'grid',placeItems:'center',padding:18}}>
@@ -84,33 +84,81 @@ function App(){
 }
 function Projects({projects,onNew,onOpen}){return <section className="content"><div className="toolbar"><div><h2 className="sectiontitle">Empreendimentos</h2><p className="muted">Registo e organização dos empreendimentos geridos pela Seven M Ativus.</p></div><button className="primary" onClick={onNew}><Plus size={18}/> Novo empreendimento</button></div><div className="panel table"><div className="thead"><span>Código / Empreendimento</span><span>Localização</span><span>Tipo</span><span>Estado</span><span></span></div>{projects.length?projects.map(p=><div className="trow" key={p.id} role="button" tabIndex={0} onClick={()=>onOpen(p)} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onOpen(p)}}} style={{cursor:'pointer'}}><div><strong>{p.name}</strong><small>{p.id}{p.description?' · '+p.description:''}</small></div><span>{p.location}</span><span>{p.type}</span><span className="green">● {p.status}</span><span><button type="button" className="secondary" onClick={e=>{e.stopPropagation();onOpen(p);}}>Ver detalhes <ChevronRight size={16}/></button></span></div>):<p className="empty">Ainda não existem empreendimentos. Selecione «Novo empreendimento» para criar o primeiro registo.</p>}</div><p className="muted">Nota: nesta versão, os registos são guardados neste navegador. A gravação partilhada na base de dados Supabase ainda precisa de ser integrada.</p></section>}
 function ProjectDetail({project,assets,onBack}){const linked=assets.filter(a=>a.projectId===project.id);return <section className="content"><div className="toolbar"><div><span className="eyebrow">FICHA DO EMPREENDIMENTO</span><h2 className="sectiontitle">{project.name}</h2><p className="muted">{project.id}</p></div><button className="secondary" onClick={onBack}>Voltar à lista</button></div><div className="panel" style={{padding:20,display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(190px,1fr))',gap:18}}><div><small className="muted">Localização</small><p><strong>{project.location||'Não indicada'}</strong></p></div><div><small className="muted">Tipo de empreendimento</small><p><strong>{project.type||'Não definido'}</strong></p></div><div><small className="muted">Estado</small><p className="green"><strong>● {project.status||'Em curso'}</strong></p></div><div><small className="muted">Código</small><p><strong>{project.id}</strong></p></div><div style={{gridColumn:'1/-1'}}><small className="muted">Descrição</small><p>{project.description||'Sem descrição registada.'}</p></div></div><div className="panel" style={{padding:20,marginTop:16}}><h3>Ativos associados</h3>{linked.length?linked.map(a=><div key={a.id} className="trow"><strong>{a.name}</strong><span>{a.id}</span><span>{a.location}</span></div>):<p className="muted">Ainda não existem ativos associados a este empreendimento. Poderemos associá-los numa próxima etapa.</p>}</div><p className="muted">Os dados desta versão são guardados localmente neste navegador.</p></section>}
-function Suppliers({suppliers,onSave,onChange}){
- const [open,setOpen]=useState(false);
- const [form,setForm]=useState({name:'',nif:'',email:'',phone:'',specialties:'',zones:'',licensePlan:'Básica'});
- const [filter,setFilter]=useState('Todos');
+function Suppliers(){
+ const [loading,setLoading]=useState(true);
+ const [saving,setSaving]=useState(false);
+ const [supplier,setSupplier]=useState(null);
+ const [form,setForm]=useState({name:'',nif:'',email:'',phone:'',specialties:'',zones:'',planCode:'BASICA'});
  const [message,setMessage]=useState('');
- const active=suppliers.filter(s=>s.licenseStatus==='Ativa').length;
- const pending=suppliers.filter(s=>s.licenseStatus==='Pendente').length;
- const expired=suppliers.filter(s=>s.licenseStatus==='Expirada'||s.licenseStatus==='Suspensa').length;
- const create=e=>{e.preventDefault();if(!form.name.trim()||!form.nif.trim()||!form.email.trim()){setMessage('Preencha o nome, NIF e email.');return;}const n=Math.max(0,...suppliers.map(s=>Number(String(s.id).replace(/\\D/g,''))||0))+1;onSave({id:'FOR-'+String(n).padStart(4,'0'),...form,name:form.name.trim(),specialties:form.specialties.split(',').map(x=>x.trim()).filter(Boolean),licenseStatus:'Pendente',paymentStatus:'Por pagar',validUntil:''});setOpen(false);setForm({name:'',nif:'',email:'',phone:'',specialties:'',zones:'',licensePlan:'Básica'});setMessage('Fornecedor registado com licença pendente.');};
- const changeStatus=(supplier,status)=>onChange(suppliers.map(s=>s.id===supplier.id?{...s,licenseStatus:status,validUntil:status==='Ativa'?new Date(Date.now()+365*86400000).toISOString().slice(0,10):s.validUntil}:s));
- const markPaid=supplier=>onChange(suppliers.map(s=>s.id===supplier.id?{...s,paymentStatus:'Pago',licenseStatus:'Ativa',validUntil:new Date(Date.now()+365*86400000).toISOString().slice(0,10)}:s));
- const shown=suppliers.filter(s=>filter==='Todos'||s.licenseStatus===filter);
+ const [error,setError]=useState('');
+ const refresh=async()=>{
+  if(!supabase){setError('A ligação ao Supabase não está configurada.');setLoading(false);return;}
+  setLoading(true);setError('');
+  try{
+   const {data:userData}=await supabase.auth.getUser();
+   if(userData?.user?.email)setForm(v=>({...v,email:v.email||userData.user.email}));
+   const {data,error:fnError}=await supabase.functions.invoke('fornecedor-portal',{method:'GET'});
+   if(fnError)throw fnError;
+   if(data?.error)throw new Error(data.error);
+   setSupplier(data?.supplier||null);
+  }catch(e){setError(e?.message||'Não foi possível consultar o portal de fornecedores.');}
+  finally{setLoading(false);}
+ };
+ React.useEffect(()=>{refresh();},[]);
+ const submit=async(e)=>{
+  e.preventDefault();setSaving(true);setError('');setMessage('');
+  try{
+   const {data,error:fnError}=await supabase.functions.invoke('fornecedor-portal',{
+    body:{
+     name:form.name.trim(),nif:form.nif.trim(),email:form.email.trim(),phone:form.phone.trim(),
+     specialties:form.specialties.split(',').map(x=>x.trim()).filter(Boolean),
+     zones:form.zones.split(',').map(x=>x.trim()).filter(Boolean),planCode:form.planCode
+    }
+   });
+   if(fnError)throw fnError;
+   if(data?.error)throw new Error(data.error);
+   setMessage(data?.message||'Registo submetido.');
+   await refresh();
+  }catch(e){setError(e?.message||'Não foi possível submeter o registo.');}
+  finally{setSaving(false);}
+ };
+ if(loading)return <section className="content"><div className="panel" style={{padding:24}}>A carregar o portal de fornecedores…</div></section>;
  return <section className="content">
-  <div className="toolbar"><div><h2 className="sectiontitle">Fornecedores e Licenciamento</h2><p className="muted">Registo de empresas, especialidades e controlo administrativo das licenças anuais.</p></div><button className="primary" onClick={()=>{setOpen(true);setMessage('')}}><Plus size={18}/> Novo fornecedor</button></div>
-  <div className="stats"><Stat icon={Truck} label="Fornecedores registados" value={suppliers.length}/><Stat icon={BadgeCheck} label="Licenças ativas" value={active}/><Stat icon={CreditCard} label="Pagamentos pendentes" value={pending}/><Stat icon={AlertTriangle} label="Expiradas / suspensas" value={expired}/></div>
-  <div className="panel" style={{marginBottom:16}}><div className="panelhead"><div><h3>Estado das licenças</h3><span>O acesso de fornecedor deverá depender da licença ativa e do pagamento confirmado.</span></div><span className="pill">Controlo administrativo</span></div><div className="paramnav">{['Todos','Ativa','Pendente','Expirada','Suspensa'].map(x=><button key={x} className={filter===x?'paramactive':''} onClick={()=>setFilter(x)}>{x}</button>)}</div></div>
-  <div className="panel table"><div className="thead"><span>Fornecedor</span><span>Especialidades</span><span>Plano</span><span>Licença</span><span>Pagamento</span><span>Ações</span></div>
-   {shown.length?shown.map(s=><div className="trow" key={s.id}><div><strong>{s.name}</strong><small>{s.id} · NIF {s.nif} · {s.email}</small></div><span>{(s.specialties||[]).join(', ')||'Por definir'}</span><span>{s.licensePlan}</span><span className={s.licenseStatus==='Ativa'?'green':''}>{s.licenseStatus}{s.validUntil?' · até '+s.validUntil:''}</span><span>{s.paymentStatus}</span><span style={{display:'flex',gap:6,flexWrap:'wrap'}}>{s.licenseStatus!=='Ativa'&&<button className="secondary" onClick={()=>markPaid(s)}>Registar pagamento</button>}{s.licenseStatus==='Ativa'?<button className="secondary" onClick={()=>changeStatus(s,'Suspensa')}>Suspender</button>:<button className="secondary" onClick={()=>changeStatus(s,'Pendente')}>Pendente</button>}{s.licenseStatus==='Suspensa'&&<button className="secondary" onClick={()=>changeStatus(s,'Expirada')}>Expirar</button>}</span></div>):<p className="empty">Não existem fornecedores neste filtro.</p>}
-  </div>
-  <p className="muted">Demonstração: os registos são guardados neste navegador. «Registar pagamento» é apenas uma ação de teste; não confirma qualquer pagamento bancário nem emite referências Multibanco.</p>
-  {open&&<div role="presentation" onClick={()=>setOpen(false)} style={{position:'fixed',inset:0,zIndex:2000,background:'rgba(10,28,44,.58)',display:'grid',placeItems:'center',padding:18}}><form onSubmit={create} onClick={e=>e.stopPropagation()} style={{width:'100%',maxWidth:540,maxHeight:'90vh',overflowY:'auto',background:'#fff',borderRadius:18,padding:22,boxSizing:'border-box'}}>
-   <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}><div><span className="eyebrow">SEVEN M ATIVUS</span><h2 style={{margin:'8px 0',color:'#173b59'}}>Registar fornecedor</h2></div><button type="button" className="secondary" onClick={()=>setOpen(false)}>Fechar</button></div>
-   {['name','nif','email','phone','specialties','zones'].map((key,i)=><label key={key} style={{display:'block',marginTop:12,fontWeight:700,color:'#23415b'}}>{['Nome da empresa *','NIF *','Email *','Telefone','Especialidades (separadas por vírgulas)','Zonas de atuação'][i]}<input required={['name','nif','email'].includes(key)} type={key==='email'?'email':'text'} value={form[key]} onChange={e=>setForm({...form,[key]:e.target.value})} style={{display:'block',width:'100%',boxSizing:'border-box',marginTop:5,padding:11,border:'1px solid #cad8e5',borderRadius:8,fontSize:15}}/></label>)}
-   <label style={{display:'block',marginTop:12,fontWeight:700,color:'#23415b'}}>Plano de licença<select value={form.licensePlan} onChange={e=>setForm({...form,licensePlan:e.target.value})} style={{display:'block',width:'100%',marginTop:5,padding:11,border:'1px solid #cad8e5',borderRadius:8,fontSize:15,background:'#fff'}}><option>Básica</option><option>Profissional</option><option>Premium</option></select></label>
-   <p style={{fontSize:12,color:'#708396'}}>O fornecedor ficará com licença pendente até validação administrativa e confirmação real do pagamento.</p><div style={{display:'flex',justifyContent:'flex-end',gap:8,marginTop:18}}><button type="button" className="secondary" onClick={()=>setOpen(false)}>Cancelar</button><button className="primary" type="submit">Guardar fornecedor</button></div>
-  </form></div>}
-  {message&&<p className="muted" role="status">{message}</p>}
+  <div className="toolbar"><div><h2 className="sectiontitle">Portal de Fornecedores</h2><p className="muted">Registo na rede global de fornecedores Seven M Ativus.</p></div></div>
+  {error&&<div className="panel" role="alert" style={{padding:16,marginBottom:16,borderLeft:'4px solid #b42318',color:'#8f1d1d'}}>{error}</div>}
+  {message&&<div className="panel" role="status" style={{padding:16,marginBottom:16,borderLeft:'4px solid #16835d',color:'#176344'}}>{message}</div>}
+  {supplier?<div className="panel" style={{padding:22}}>
+   <div className="panelhead"><div><h3>{supplier.nome_empresa}</h3><span>{supplier.codigo} · NIF {supplier.nif}</span></div><span className="pill">{supplier.estado_registo==='validado'?'Fornecedor validado':supplier.estado_registo==='suspenso'?'Suspenso':'Em validação'}</span></div>
+   <div className="stats compact" style={{marginTop:18}}>
+    <Stat icon={Truck} label="Estado do registo" value={supplier.estado_registo==='validado'?'Validado':supplier.estado_registo==='rejeitado'?'Rejeitado':supplier.estado_registo==='suspenso'?'Suspenso':'Pendente'}/>
+    <Stat icon={CreditCard} label="Plano" value={supplier.license?.planos_licenca?.nome||'Por definir'}/>
+    <Stat icon={BadgeCheck} label="Licença" value={supplier.license?.estado||'Pendente'}/>
+   </div>
+   <div className="grid2" style={{marginTop:18}}>
+    <div><h3>Dados de contacto</h3><p>{supplier.email}</p><p>{supplier.telefone||'Telefone não indicado'}</p></div>
+    <div><h3>Atuação</h3><p><b>Especialidades:</b> {(supplier.specialties||[]).map(x=>x.especialidades_fornecedor?.nome).filter(Boolean).join(', ')||'Por definir'}</p><p><b>Zonas:</b> {(supplier.zones||[]).map(x=>x.concelho||x.distrito||x.pais).join(', ')||'Por definir'}</p></div>
+   </div>
+   <p className="muted" style={{marginTop:18}}>A conta está associada a este fornecedor. A receção de consultas só será permitida depois da validação administrativa e da ativação da licença, com pagamento confirmado.</p>
+  </div>:<div className="panel" style={{padding:22,maxWidth:760}}>
+   <div className="panelhead"><div><h3>Pedido de registo de fornecedor</h3><span>O registo fica pendente até validação pela administração Seven M Ativus.</span></div><span className="pill">Acesso autenticado</span></div>
+   <form onSubmit={submit} style={{marginTop:16}}>
+    <div className="grid2">
+     <label>Nome da empresa *<input required maxLength={180} value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder="Denominação social"/></label>
+     <label>NIF *<input required maxLength={20} value={form.nif} onChange={e=>setForm({...form,nif:e.target.value})} placeholder="Número de identificação fiscal"/></label>
+     <label>Email de contacto *<input required type="email" value={form.email} onChange={e=>setForm({...form,email:e.target.value})}/></label>
+     <label>Telefone<input value={form.phone} onChange={e=>setForm({...form,phone:e.target.value})}/></label>
+     <label>Especialidades<input value={form.specialties} onChange={e=>setForm({...form,specialties:e.target.value})} placeholder="Ex.: Construção civil, AVAC, Eletricidade"/></label>
+     <label>Zonas de atuação<input value={form.zones} onChange={e=>setForm({...form,zones:e.target.value})} placeholder="Ex.: Porto, Braga, Vila Real"/></label>
+    </div>
+    <label style={{display:'block',marginTop:16}}>Plano anual pretendido
+     <select value={form.planCode} onChange={e=>setForm({...form,planCode:e.target.value})} style={{display:'block',width:'100%',marginTop:6,padding:11,border:'1px solid #cad8e5',borderRadius:8,background:'#fff'}}>
+      <option value="BASICA">Básica</option><option value="PROFISSIONAL">Profissional</option><option value="PREMIUM">Premium</option>
+     </select>
+    </label>
+    <p className="muted" style={{fontSize:12,marginTop:14}}>A submissão não ativa a licença nem confirma pagamentos. A administração irá validar os dados e comunicar os passos seguintes.</p>
+    <button className="primary" type="submit" disabled={saving} style={{marginTop:10}}>{saving?'A submeter…':'Submeter pedido de registo'}</button>
+   </form>
+  </div>}
  </section>;
 }
 function Dashboard({assets,inspections,pathologies,onAssets,onNew}){
