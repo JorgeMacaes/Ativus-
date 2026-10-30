@@ -3,8 +3,8 @@ import {Building2,Plus,RefreshCw,ChevronRight,ArrowLeft,AlertTriangle} from 'luc
 import {supabase} from './lib/supabase.js';
 
 const TYPES=['Edifício multifamiliar','Edifício unifamiliar','Edifício de serviços / escritórios','Edifício comercial','Instalação industrial','Infraestrutura rodoviária','Ponte / viaduto','Infraestrutura ferroviária','Infraestrutura hidráulica','Equipamento público','Outro'];
-const typeToDb=v=>v==='Edifício multifamiliar'||v==='Edifício unifamiliar'?'edificio':v==='Ponte / viaduto'?'ponte':v==='Infraestrutura rodoviária'?'infraestrutura_rodoviaria':v==='Infraestrutura ferroviária'?'infraestrutura_ferroviaria':v==='Instalação industrial'?'instalacao_industrial':v==='Equipamento público'?'equipamento_publico':v==='Outro'?'outro':v.toLowerCase().replaceAll(' ','_').replaceAll('/','_');
-const typeFromDb=v=>({edificio:'Edifício',ponte:'Ponte / viaduto',infraestrutura_rodoviaria:'Infraestrutura rodoviária',infraestrutura_ferroviaria:'Infraestrutura ferroviária',instalacao_industrial:'Instalação industrial',equipamento_publico:'Equipamento público'}[v]||String(v||'—').replaceAll('_',' '));
+const typeToDb=v=>v;
+const typeFromDb=v=>v||'—';
 export default function AtivusProjects(){
  const [rows,setRows]=useState([]),[entities,setEntities]=useState([]),[assets,setAssets]=useState([]);
  const [loading,setLoading]=useState(true),[saving,setSaving]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState('');
