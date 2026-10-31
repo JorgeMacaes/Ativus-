@@ -220,3 +220,8 @@ h1,.sectiontitle,.panel h3,.details b{color:var(--ativus-ink)}
 .ecfill2{background:#a4b88a}
 .ecfill3{background:#d6b66b}
 @media(max-width:700px){.main header{background:#fff}}
+
+
+/* Marca independente Ativus — sem referência à Seven M */
+.brand-wordmark{display:block;color:#fff;font-size:28px;font-weight:800;letter-spacing:-1.5px;line-height:1.1;padding:12px 8px}
+.header-brand-wordmark{display:block;color:#28766c;font-size:24px;font-weight:800;letter-spacing:-1.2px;line-height:1.05;text-align:center;margin-bottom:2px}
