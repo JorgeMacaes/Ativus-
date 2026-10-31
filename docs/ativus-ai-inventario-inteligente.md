@@ -23,6 +23,9 @@ O módulo deve permitir carregar documentação multidisciplinar. A aceitação 
 ### Formatos a suportar
 - **Desenho e CAD 2D:** PDF, DWG, DXF, DWT.
 - **CAD e modelos 3D:** DWG 3D, DXF 3D, STEP/STP, IGES/IGS.
+
+- **Formatos Autodesk de publicação e consulta:** DWF e DWFx. Devem ser aceites como documentos técnicos de origem, preservando o original e permitindo pré-visualização/conversão quando exista ferramenta compatível. A extração de folhas, vistas, camadas e propriedades depende do conteúdo efetivamente publicado no ficheiro; não assumir que contém toda a estrutura editável do DWG.
+
 - **BIM:** IFC como formato prioritário de intercâmbio; RVT, RFA e PLN quando exista exportação/conversão compatível.
 - **Modelos 3D e malhas:** OBJ, STL, PLY, GLB, GLTF, FBX.
 - **Nuvens de pontos e digitalização:** E57, LAS, LAZ.
