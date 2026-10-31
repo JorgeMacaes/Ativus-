@@ -96,3 +96,42 @@ A adaptação deve preservar a ligação exata ao nó da árvore. Não substitui
 ## 7. Limite
 
 Este inventário descreve o código observado e o destino de cada módulo. Não foram alterados ficheiros de produção nem realizadas alterações de esquema. A implementação deve aguardar o esquema canónico, as políticas RLS e o ambiente de teste.
+
+## 8. Auditoria complementar — módulos operacionais (31-10-2026)
+
+Ficheiros consultados na branch:
+- `src/Occurrences.jsx`
+- `src/PathologiesLive.jsx`
+- `src/Monitoring.jsx`
+- `src/TechnicalDocuments.jsx`
+- `src/AtivusAI.jsx`
+- `src/main.jsx`
+- `supabase/functions/public-occurrence/index.ts`
+
+Dependências confirmadas:
+- Ocorrências: formulário e listagem dependem de `empreendimento_id`; carregam separadamente `empreendimentos`, `ativos` e `componentes`.
+- Patologias: apresenta Empreendimento, Ativo e Componente em campos separados; a criação de trabalho envia os três identificadores.
+- Monitorização: o dispositivo guarda `empreendimento_id`, `ativo_id` e `componente_id`; os seletores são carregados a partir das três tabelas antigas.
+- Documentação técnica: o formulário e o caminho de armazenamento usam `empreendimento_id`; valida separadamente ativo, componente, inspeção, patologia e trabalho.
+- Navegação em `main.jsx`: ainda contém menu Empreendimentos, vistas de empreendimento e um fluxo de demonstração local separado do backend.
+- Portal QR: procura o token em três tabelas diferentes e compõe os identificadores antigos antes de criar a ocorrência.
+- A auditoria de `AtivusAI.jsx` também encontrou referências ao contexto antigo; requer adaptação conjunta com as políticas e funções SQL de IA.
+
+## 9. Verificação de utilização atual das referências antigas na base de dados
+
+Consulta somente de leitura ao esquema de produção, em 31-10-2026:
+- `ativos.empreendimento_id`: 2 valores preenchidos.
+- `ocorrencias.empreendimento_id`: 1 valor preenchido.
+- `ocorrencias.ativo_id`: 1 valor preenchido.
+- `empreendimento_id` nas restantes tabelas operacionais consultadas: 0 valores preenchidos.
+- `ativo_id` e `componente_id` nas restantes tabelas operacionais consultadas: 0 valores preenchidos.
+
+Esta fotografia não substitui nova contagem imediatamente antes da migração. As chaves estrangeiras, políticas e funções continuam a depender do modelo antigo mesmo quando as tabelas têm zero registos.
+
+## 10. Dependências de segurança e lógica de negócio
+
+A consulta ao catálogo PostgreSQL confirmou políticas RLS que chamam `user_can_access_empreendimento(...)`, incluindo políticas de trabalhos e de dados auxiliares de IA. Foram também encontradas funções SQL que recebem `p_empreendimento_id`, consultam `empreendimentos` ou escrevem `empreendimento_id` em agendamentos, trabalhos, indicadores e histórico.
+
+Consequência: a migração não pode limitar-se a adicionar `ativo_pai_id` e copiar linhas. É necessário redesenhar e testar a autorização por `entidade_id` e/ou pela árvore do ativo, e adaptar RPCs, triggers, views, políticas RLS, Storage e Edge Functions antes de retirar as tabelas antigas.
+
+Nenhuma política, função, tabela, registo ou ficheiro foi alterado nesta auditoria.
