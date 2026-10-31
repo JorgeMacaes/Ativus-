@@ -183,7 +183,8 @@ function CRM(){
     <div style={{display:'flex',justifyContent:'flex-end',gap:8,marginTop:16}}><button type="button" className="secondary" onClick={()=>setFormOpen(false)}>Cancelar</button><button type="submit" className="primary" disabled={saving}>{saving?'A guardar…':'Guardar contacto'}</button></div>
    </form>
   </div>}
- <CRMActivityPanel/>\n </section>;\n}\n\nfunction Suppliers(){
+ <CRMActivityPanel/>
+ </section>;\n}\n\nfunction Suppliers(){
  const [loading,setLoading]=useState(true);
  const [saving,setSaving]=useState(false);
  const [supplier,setSupplier]=useState(null);
