@@ -6,6 +6,7 @@ import { backendConfigured, supabase } from './lib/supabase.js';
 import CRMCompanies from './CRMCompanies.jsx';
 import AtivusProjects from './AtivusProjects.jsx';
 import AtivusAI from './AtivusAI.jsx';
+import Inspections from './Inspections.jsx';
 
 const seedProjects=[
  {id:'EMP-0001',name:'Edifício Rua Central',location:'Porto',type:'Edifício multifamiliar',status:'Em curso',description:'Empreendimento de demonstração'}
@@ -76,7 +77,7 @@ function App(){
    {view==='dashboard'&&<Dashboard assets={assets} inspections={inspections} pathologies={pathologies} onAssets={()=>go('assets')} onNew={addAsset}/>}
    {view==='assets'&&<Assets assets={filtered} query={query} setQuery={setQuery} onNew={addAsset} onOpen={id=>{setSelected(id);setView('asset')}}/>}
    {view==='asset'&&current&&<AssetDetail asset={current} inspections={inspections} pathologies={pathologies} onBack={()=>go('assets')} onNewInspection={()=>addInspection(current.id)} onNewPathology={addPathology}/>}
-   {view==='inspections'&&<Inspections inspections={inspections} assets={assets}/>}
+   {view==='inspections'&&<Inspections/>}
    {view==='pathologies'&&<Pathologies pathologies={pathologies} assets={assets} onNew={addPathology}/>}
    {view==='agenda'&&<Agenda inspections={inspections} pathologies={pathologies}/>}
    {view==='monitoring'&&<Module icon={Activity} title="Sistemas de Monitorização" text="Instrumentação e aquisição de dados para deslocamentos, velocidade de corrosão e outros sensores."/>}
