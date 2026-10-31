@@ -95,3 +95,21 @@
 .helpdesk-note{display:flex;align-items:center;gap:8px;color:#728794;font-size:10px;line-height:1.5;margin-top:15px}
 @media(max-width:850px){.help-layout,.helpdesk-grid{grid-template-columns:1fr}.help-categories{position:static;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 12px}.help-categories h3{grid-column:1/-1}.help-category{font-size:10px}.help-bottom{align-items:flex-start;flex-direction:column}}
 @media(max-width:480px){.help-hero{padding:19px;gap:12px}.help-hero-icon{width:46px;height:46px}.help-hero h2,.helpdesk-heading h2{font-size:22px}.helpdesk-heading{align-items:flex-start;flex-direction:column;padding:18px}.ticket-form,.ticket-list{padding:15px}.ticket-fields{grid-template-columns:1fr}.help-categories{grid-template-columns:1fr}}
+
+/* Ecrã de autenticação — identidade institucional */
+.auth-screen{position:relative;isolation:isolate;background:radial-gradient(ellipse at 15% 15%,rgba(215,190,105,.18),transparent 35%),linear-gradient(140deg,#214d45 0%,#173c39 52%,#102e35 100%)!important;padding:24px!important}
+.auth-screen:before{content:"";position:absolute;inset:0;z-index:-1;opacity:.12;background:linear-gradient(30deg,transparent 49.7%,rgba(255,255,255,.3) 50%,transparent 50.3%);background-size:52px 52px}
+.auth-card{position:relative;border:1px solid rgba(255,255,255,.55)!important;border-radius:22px!important;padding:34px!important;box-shadow:0 24px 80px rgba(0,0,0,.24)!important}
+.auth-card:before{content:"";display:block;height:4px;width:54px;border-radius:9px;background:#d9b95b;margin:0 0 22px}
+.auth-card h1{font-size:27px!important;letter-spacing:-.6px}
+.auth-card input{transition:border-color .15s,box-shadow .15s}
+.auth-card input:focus{outline:none;border-color:#397f78!important;box-shadow:0 0 0 3px rgba(57,127,120,.13)}
+.auth-card button[type=submit]{background:linear-gradient(100deg,#235f58,#317b6c)!important;box-shadow:0 7px 18px rgba(30,88,78,.2);cursor:pointer}
+.auth-card button[type=button]{cursor:pointer}
+.auth-card button:hover{filter:brightness(1.03)}
+/* Profundidade subtil nos indicadores, sem sacrificar legibilidade */
+.stat{box-shadow:0 3px 0 rgba(26,61,79,.035),0 8px 20px rgba(25,55,75,.035)}
+.chartpanel{box-shadow:0 3px 0 rgba(26,61,79,.035),0 9px 22px rgba(25,55,75,.035)}
+.ecbartrack{box-shadow:inset -4px 0 0 rgba(24,54,72,.045),0 3px 0 rgba(24,54,72,.06)}
+.ecbarfill{box-shadow:inset -4px 0 0 rgba(20,60,60,.10)}
+@media(max-width:480px){.auth-card{padding:24px!important}.auth-screen{padding:16px!important}}
