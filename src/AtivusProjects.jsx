@@ -24,7 +24,7 @@ export default function AtivusProjects(){
    if(!entityIds.length)throw new Error('A tua conta ainda não está associada a nenhuma entidade ativa.');
    const [entityResult,projectResult]=await Promise.all([
     supabase.from('entidades').select('id,nome,ativa').eq('ativa',true).in('id',entityIds).order('nome'),
-    supabase.from('empreendimentos').select('id,entidade_id,codigo,codigo_interno,nome,tipo,morada,descricao,ativo,estado_manutencao,classe_estado_conservacao,criado_em').eq('ativo',true).order('nome')
+    supabase.from('empreendimentos').select('id,entidade_id,codigo,codigo_interno,nome,tipo,morada,descricao,ativo,estado_manutencao,classe_estado_conservacao,criado_em,qr_token').eq('ativo',true).order('nome')
    ]);
    if(entityResult.error)throw entityResult.error;
    if(projectResult.error)throw projectResult.error;
@@ -51,7 +51,7 @@ export default function AtivusProjects(){
    if(!userData?.user)throw new Error('A sessão expirou. Inicia sessão novamente.');
    const codigo='EMP-'+Date.now().toString().slice(-8);
    const payload={entidade_id:form.entidade_id,codigo,nome:form.nome.trim(),tipo:typeToDb(form.tipo),morada:form.morada.trim()||null,descricao:form.descricao.trim()||null};
-   const {data,error:insertError}=await supabase.from('empreendimentos').insert(payload).select('id,entidade_id,codigo,nome,tipo,morada,descricao,ativo,estado_manutencao,classe_estado_conservacao,criado_em').single();
+   const {data,error:insertError}=await supabase.from('empreendimentos').insert(payload).select('id,entidade_id,codigo,nome,tipo,morada,descricao,ativo,estado_manutencao,classe_estado_conservacao,criado_em,qr_token').single();
    if(insertError)throw insertError;
    setRows(v=>[data,...v]);setForm({nome:'',morada:'',tipo:'Edifício multifamiliar',descricao:'',entidade_id:''});setFormOpen(false);setMessage('Empreendimento guardado no Supabase.');
   }catch(e){setError(e?.message||'Não foi possível guardar o empreendimento.');}
