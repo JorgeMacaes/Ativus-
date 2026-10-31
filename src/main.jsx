@@ -8,6 +8,7 @@ import AtivusProjects from './AtivusProjects.jsx';
 import AtivusAI from './AtivusAI.jsx';
 import LiveInspections from './Inspections.jsx';
 import Occurrences from './Occurrences.jsx';
+import PathologiesLive from './PathologiesLive.jsx';
 import PublicOccurrence from './PublicOccurrence.jsx';
 
 const seedProjects=[
@@ -81,7 +82,7 @@ function App(){
    {view==='asset'&&current&&<AssetDetail asset={current} inspections={inspections} pathologies={pathologies} onBack={()=>go('assets')} onNewInspection={()=>addInspection(current.id)} onNewPathology={addPathology}/>}
    {view==='inspections'&&<LiveInspections/>}
    {view==='occurrences'&&<Occurrences/>}
-   {view==='pathologies'&&<Pathologies pathologies={pathologies} assets={assets} onNew={addPathology}/>}
+   {view==='pathologies'&&<PathologiesLive/>}
    {view==='agenda'&&<Agenda inspections={inspections} pathologies={pathologies}/>}
    {view==='monitoring'&&<Module icon={Activity} title="Sistemas de Monitorização" text="Instrumentação e aquisição de dados para deslocamentos, velocidade de corrosão e outros sensores."/>}
    {view==='documents'&&<Module icon={FileText} title="Documentação" text="Documentos associados a ativos, componentes, inspeções e intervenções."/>}
