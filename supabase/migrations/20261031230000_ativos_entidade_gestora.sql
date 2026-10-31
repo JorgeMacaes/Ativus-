@@ -99,10 +99,18 @@ create policy ativus_componentes_insert on public.componentes
 for insert to authenticated
 with check (
   public.user_can_access_entidade(entidade_id)
-  and exists (
-    select 1 from public.ativos a
-    where a.id = componentes.ativo_id
-      and a.entidade_id = componentes.entidade_id
+  and (
+    (componentes.ativo_id is not null and exists (
+      select 1 from public.ativos a
+      where a.id = componentes.ativo_id
+        and a.entidade_id = componentes.entidade_id
+    ))
+    or
+    (componentes.componente_pai_id is not null and exists (
+      select 1 from public.componentes pai
+      where pai.id = componentes.componente_pai_id
+        and pai.entidade_id = componentes.entidade_id
+    ))
   )
 );
 
