@@ -3,7 +3,7 @@
 begin;
 
 do $$
-declare t text;
+declare t text; has_null boolean;
 begin
   foreach t in array array[
     'inspecoes','patologias','trabalhos','ocorrencias',
@@ -18,6 +18,12 @@ begin
       'update public.%I x set entidade_id=a.entidade_id from public.ativos a where a.id=x.ativo_id and x.entidade_id is null',
       t
     );
+    if t in ('documentos_tecnicos','dispositivos_monitorizacao','patologias','trabalhos','ocorrencias') then
+      execute format(
+        'update public.%I x set entidade_id=c.entidade_id from public.componentes c where c.id=x.componente_id and x.entidade_id is null',
+        t
+      );
+    end if;
     execute format('select exists(select 1 from public.%I where entidade_id is null)',t) into has_null;
     if has_null then
       raise exception 'Migração interrompida: a tabela % ainda tem registos sem entidade gestora.',t;
