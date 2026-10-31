@@ -73,6 +73,7 @@ export default function AtivusAI(){
  const [inventoryComponents,setInventoryComponents]=useState([]);
  const [planElement,setPlanElement]=useState({plano_id:'',ativo_id:'',componente_id:'',instrucoes:''});
  const [ruleElement,setRuleElement]=useState({ativo_id:'',componente_id:''});
+ const [teamMembers,setTeamMembers]=useState([]);
  const [selectedWorkId,setSelectedWorkId]=useState('');
  const [budgetDraft,setBudgetDraft]=useState({ano:new Date().getFullYear(),designacao:'Orçamento de manutenção',valor_aprovado:''});
  const [executionDraft,setExecutionDraft]=useState({descricao_trabalho:'',horas:'',custo_mao_obra:'',custo_materiais:'',custo_equipamentos:'',custo_outros:'',observacoes:''});
@@ -89,6 +90,13 @@ export default function AtivusAI(){
 
 
 
+ const loadTeamMembers=useCallback(async()=>{
+  if(!selected)return;
+  const {data,error}=await supabase.rpc('ativus_membros_equipa_empreendimento',{p_empreendimento_id:selected});
+  if(error)throw error;
+  setTeamMembers(data||[]);
+ },[selected]);
+ useEffect(()=>{loadTeamMembers().catch(e=>setError(e.message||'Não foi possível carregar os membros da entidade.'));},[loadTeamMembers]);
  const loadInventoryChoices=useCallback(async()=>{
   if(!selected)return;
   const [a,c]=await Promise.all([
@@ -237,8 +245,8 @@ export default function AtivusAI(){
      </div>
      <label style={{display:'block',marginTop:8}}>Prazo previsto</label><input type="date" value={newWork.prazo_previsto} onChange={e=>setNewWork(v=>({...v,prazo_previsto:e.target.value}))}/>
      <label style={{display:'block',marginTop:8}}>Custo estimado (€)</label><input type="number" min="0" step="0.01" value={newWork.custo_total_estimado} onChange={e=>setNewWork(v=>({...v,custo_total_estimado:e.target.value}))}/>
-     <input placeholder="Equipa responsável" value={newWork.equipa_responsavel} onChange={e=>setNewWork(v=>({...v,equipa_responsavel:e.target.value}))} style={{width:'100%',padding:9,margin:'8px 0',boxSizing:'border-box'}}/>
-     <button className="primary" disabled={!!actionBusy} onClick={async()=>{setActionBusy('work');setError('');try{if(!newWork.codigo.trim()||!newWork.descricao.trim())throw new Error('Indica o código e a descrição.');const {data:user}=await supabase.auth.getUser();const cost=newWork.custo_total_estimado===''?null:Number(newWork.custo_total_estimado);const {error}=await supabase.from('trabalhos').insert({empreendimento_id:selected,codigo:newWork.codigo.trim(),descricao:newWork.descricao.trim(),tipo:newWork.tipo,prioridade:newWork.prioridade,estado:'por_planear',prazo_previsto:newWork.prazo_previsto||null,custo_total_estimado:cost,origem_planeamento:'manual',equipa_responsavel:newWork.equipa_responsavel||null,criado_por:user?.user?.id});if(error)throw error;setNewWork({codigo:'',descricao:'',tipo:'preventivo',prioridade:'moderada',prazo_previsto:'',custo_total_estimado:'',equipa_responsavel:''});setMessage('Ordem de trabalho criada.');await loadOperationalData();}catch(e){setError(e.message||'Não foi possível criar a ordem.');}finally{setActionBusy('');}}}>{actionBusy==='work'?'A guardar…':'Criar ordem'}</button>
+     <input placeholder="Equipa responsável" value={newWork.equipa_responsavel} onChange={e=>setNewWork(v=>({...v,equipa_responsavel:e.target.value}))} style={{width:'100%',padding:9,margin:'8px 0',boxSizing:'border-box'}}/><select value={newWork.responsavel_id||''} onChange={e=>setNewWork(v=>({...v,responsavel_id:e.target.value}))} style={{width:'100%',padding:8,marginBottom:8}}><option value="">Sem responsável atribuído</option>{teamMembers.map(m=><option key={m.utilizador_id} value={m.utilizador_id}>{m.utilizador_id.slice(0,8)} — {m.perfil}</option>)}</select>
+     <button className="primary" disabled={!!actionBusy} onClick={async()=>{setActionBusy('work');setError('');try{if(!newWork.codigo.trim()||!newWork.descricao.trim())throw new Error('Indica o código e a descrição.');const {data:user}=await supabase.auth.getUser();const cost=newWork.custo_total_estimado===''?null:Number(newWork.custo_total_estimado);const {error}=await supabase.from('trabalhos').insert({empreendimento_id:selected,codigo:newWork.codigo.trim(),descricao:newWork.descricao.trim(),tipo:newWork.tipo,prioridade:newWork.prioridade,estado:'por_planear',prazo_previsto:newWork.prazo_previsto||null,custo_total_estimado:cost,origem_planeamento:'manual',equipa_responsavel:newWork.equipa_responsavel||null,responsavel_id:newWork.responsavel_id||null,criado_por:user?.user?.id});if(error)throw error;setNewWork({codigo:'',descricao:'',tipo:'preventivo',prioridade:'moderada',prazo_previsto:'',custo_total_estimado:'',equipa_responsavel:'',responsavel_id:''});setMessage('Ordem de trabalho criada.');await loadOperationalData();}catch(e){setError(e.message||'Não foi possível criar a ordem.');}finally{setActionBusy('');}}}>{actionBusy==='work'?'A guardar…':'Criar ordem'}</button>
     </div>
     <div style={{padding:14,border:'1px solid #dce6ee',borderRadius:10}}>
      <h4 style={{marginTop:0}}>Criar plano de manutenção</h4>
