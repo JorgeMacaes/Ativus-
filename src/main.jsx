@@ -80,7 +80,7 @@ function App(){
      <p style={{fontSize:11,color:'#708396',marginTop:14}}>Os registos desta versão continuam guardados localmente neste navegador.</p>
     </form>
    </div>}
-   {view==='dashboard'&&<Dashboard assets={assets} inspections={inspections} pathologies={pathologies} onAssets={()=>go('assets')} onNew={addAsset}/>}
+   {view==='dashboard'&&<Dashboard assets={assets} inspections={inspections} pathologies={pathologies} onAssets={()=>go('assets')}/>}
    {view==='assets'&&<Assets assets={filtered} query={query} setQuery={setQuery} onNew={addAsset} onOpen={id=>{setSelected(id);setView('asset')}}/>}
    {view==='asset'&&current&&<AssetDetail asset={current} inspections={inspections} pathologies={pathologies} onBack={()=>go('assets')} onNewInspection={()=>addInspection(current.id)} onNewPathology={addPathology}/>}
    {view==='inspections'&&<LiveInspections/>}
@@ -259,7 +259,7 @@ function Suppliers(){
   </div>}
  </section>;
 }
-function Dashboard({assets,inspections,pathologies,onAssets,onNew}){
+function Dashboard({assets,inspections,pathologies,onAssets}){
  const open=pathologies.filter(p=>!['Encerrada','Verificada'].includes(p.status)).length;
  const ecCounts=[0,1,2,3,4,5].map(ec=>({label:'EC '+ec,value:assets.filter(a=>Number(a.ec)===ec).length}));
  const severity=[{label:'Crítica · EC5',value:pathologies.filter(p=>Number(p.ec)===5).length},{label:'Alta · EC4',value:pathologies.filter(p=>Number(p.ec)===4).length},{label:'Moderada · EC3',value:pathologies.filter(p=>Number(p.ec)===3).length},{label:'Baixa · EC0–2',value:pathologies.filter(p=>Number(p.ec)<=2).length}];
@@ -267,7 +267,7 @@ function Dashboard({assets,inspections,pathologies,onAssets,onNew}){
  const maxEC=Math.max(1,...ecCounts.map(x=>x.value));
  const recent=inspections.slice().sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,4);
  return <section className="content">
-  <div className="hero"><div><span className="pill">Protótipo · dados locais</span><h2>Visão global dos ativos</h2><p>Indicadores visuais para acompanhar inventário, inspeções e anomalias. Os dados atuais são demonstrativos e guardados neste navegador.</p></div><button className="primary" onClick={onNew}><Plus size={18}/> Novo Ativo</button></div>
+  <div className="hero"><div><span className="pill">Visão geral</span><h2>Visão global dos ativos</h2><p>Indicadores para acompanhar o inventário, as inspeções, o estado de conservação e as anomalias registadas.</p></div></div>
   <div className="stats"><Stat icon={Building2} label="Ativos registados" value={assets.length}/><Stat icon={ClipboardCheck} label="Inspeções registadas" value={inspections.length}/><Stat icon={AlertTriangle} label="Patologias por tratar" value={open}/><Stat icon={ShieldCheck} label="Ativos em EC5" value={assets.filter(a=>Number(a.ec)===5).length}/></div>
   <div className="dashgrid">
    <div className="panel chartpanel"><div className="panelhead"><div><h3>Estado de conservação dos ativos</h3><span>Distribuição por classe EC</span></div><span className="charttag">Inventário</span></div>
@@ -308,6 +308,7 @@ function AuthGate(){
  const [password,setPassword]=useState('');
  const [message,setMessage]=useState('');
  const [busy,setBusy]=useState(false);
+ const [userMenuOpen,setUserMenuOpen]=useState(false);
  React.useEffect(()=>{
    if(!supabase){setLoading(false);return}
    supabase.auth.getSession().then(({data,error})=>{if(error)setMessage(error.message);setSession(data?.session||null);setLoading(false)});
@@ -340,7 +341,7 @@ const result = mode === 'login'
  const signOut=async()=>{await supabase?.auth.signOut();setSession(null)};
  if(qrToken)return <PublicOccurrence token={qrToken}/>;
  if(loading)return <div style={{minHeight:'100vh',display:'grid',placeItems:'center',background:'#f3f7fb',color:'#23415b'}}>A verificar sessão…</div>;
- if(session)return <><div style={{position:'fixed',zIndex:1000,top:12,right:16,display:'flex',gap:10,alignItems:'center',background:'#fff',border:'1px solid #dbe5ee',borderRadius:12,padding:'8px 12px',fontSize:12,color:'#23415b'}}><span>{session.user?.email}</span><button onClick={signOut} style={{border:0,borderRadius:8,padding:'7px 10px',background:'#eaf1f7',color:'#23415b'}}>Terminar sessão</button></div><App/></>;
+ if(session)return <><div className="session-menu"><button type="button" className="session-trigger" onClick={()=>setUserMenuOpen(v=>!v)} aria-expanded={userMenuOpen} aria-label="Menu do utilizador"><span className="session-avatar">JM</span><span className="session-email">{session.user?.email}</span><span className="session-chevron">▾</span></button>{userMenuOpen&&<div className="session-dropdown"><span className="session-dropdown-email">{session.user?.email}</span><button type="button" onClick={signOut}>Terminar sessão</button></div>}</div><App/></>;
  if(!backendConfigured)return <div style={{minHeight:'100vh',display:'grid',placeItems:'center',padding:24,background:'#f3f7fb',fontFamily:'Arial,sans-serif'}}><div style={{maxWidth:430,width:'100%',background:'#fff',border:'1px solid #dbe5ee',borderRadius:20,padding:28,boxSizing:'border-box'}}><img src={import.meta.env.BASE_URL+'seven-m-ativus.svg'} alt="Seven M Ativus" style={{width:230,maxWidth:'100%',height:'auto',marginBottom:22}}/><h1 style={{color:'#173b59',fontSize:24}}>Acesso à plataforma</h1><p style={{color:'#52677a',lineHeight:1.5}}>A autenticação está preparada no código, mas falta configurar a ligação ao Supabase na publicação web. Não introduzas aqui a tua palavra-passe.</p><p style={{fontSize:12,color:'#52677a'}}>Estado: backend não configurado.</p></div></div>;
  return <div style={{minHeight:'100vh',display:'grid',placeItems:'center',padding:24,background:'linear-gradient(135deg,#edf4fa,#f8fbfe)',fontFamily:'Arial,sans-serif',boxSizing:'border-box'}}><form onSubmit={submit} style={{maxWidth:420,width:'100%',background:'#fff',border:'1px solid #dbe5ee',borderRadius:20,padding:28,boxSizing:'border-box',boxShadow:'0 16px 45px rgba(25,65,95,.09)'}}><img src={import.meta.env.BASE_URL+'seven-m-ativus.svg'} alt="Seven M Ativus" style={{width:230,maxWidth:'100%',height:'auto',marginBottom:22}}/><h1 style={{color:'#173b59',fontSize:25,marginBottom:8}}>{mode==='login'?'Iniciar sessão':'Criar conta'}</h1><p style={{color:'#52677a',lineHeight:1.5,fontSize:14}}>Acesso por email à plataforma de gestão de ativos.</p><label style={{display:'block',fontSize:13,fontWeight:700,color:'#23415b',marginTop:22}}>Email</label><input type="email" autoComplete="email" required value={email} onChange={e=>setEmail(e.target.value)} style={{width:'100%',boxSizing:'border-box',padding:12,border:'1px solid #cad8e5',borderRadius:9,marginTop:7,fontSize:16}}/><label style={{display:'block',fontSize:13,fontWeight:700,color:'#23415b',marginTop:16}}>Palavra-passe (mínimo 8 caracteres)</label><input type="password" autoComplete={mode==='login'?'current-password':'new-password'} minLength={8} required value={password} onChange={e=>setPassword(e.target.value)} style={{width:'100%',boxSizing:'border-box',padding:12,border:'1px solid #cad8e5',borderRadius:9,marginTop:7,fontSize:16}}/><button disabled={busy} type="submit" style={{width:'100%',marginTop:22,padding:13,border:0,borderRadius:10,background:'#1d5f91',color:'#fff',fontWeight:700,fontSize:15,opacity:busy?.7:1}}>{busy?'A processar…':mode==='login'?'Entrar':'Criar conta'}</button><button type="button" onClick={()=>{setMode(mode==='login'?'signup':'login');setMessage('')}} style={{width:'100%',marginTop:12,padding:10,border:'1px solid #dbe5ee',borderRadius:10,background:'#fff',color:'#1d5f91'}}>{mode==='login'?'Ainda não tens conta? Criar conta':'Já tens conta? Iniciar sessão'}</button>{message&&<p role="status" style={{marginTop:16,fontSize:13,lineHeight:1.5,color:'#23415b',overflowWrap:'anywhere'}}>{message}</p>}<p style={{marginTop:20,fontSize:11,color:'#708396',lineHeight:1.5}}>A criação de conta não atribui permissões de administrador. O acesso aos dados será controlado separadamente pelas políticas de segurança.</p></form></div>;
 }
