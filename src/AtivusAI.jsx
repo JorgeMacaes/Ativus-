@@ -89,11 +89,6 @@ export default function AtivusAI(){
  const [appointmentDraft,setAppointmentDraft]=useState({plano_id:'',data_prevista:'',janela_inicio:'',janela_fim:'',observacoes:''});
  const [budgetDraftEdit,setBudgetDraftEdit]=useState({});
 
- const [selectedWorkId,setSelectedWorkId]=useState('');
- const [budgetDraft,setBudgetDraft]=useState({ano:new Date().getFullYear(),designacao:'Orçamento de manutenção',valor_aprovado:''});
- const [executionDraft,setExecutionDraft]=useState({descricao_trabalho:'',horas:'',custo_mao_obra:'',custo_materiais:'',custo_equipamentos:'',custo_outros:'',observacoes:''});
- const [resourceDraft,setResourceDraft]=useState({tipo:'material',designacao:'',unidade:'un',quantidade:1,custo_unitario:'',fornecedor:''});
- const [dependencyDraft,setDependencyDraft]=useState({trabalho_id:'',depende_de_trabalho_id:'',desfasamento_dias:0});
 
 
 
