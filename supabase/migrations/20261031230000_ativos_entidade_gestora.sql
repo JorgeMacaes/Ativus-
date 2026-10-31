@@ -39,11 +39,17 @@ from public.empreendimentos e
 where e.id = c.empreendimento_id
   and c.entidade_id is null;
 
--- Componentes sem empreendimento, mas ligados a um ativo, herdam a entidade do ativo.
+-- Componentes sem empreendimento herdam a entidade do ativo ou do componente pai.
 update public.componentes c
 set entidade_id = a.entidade_id
 from public.ativos a
 where a.id = c.ativo_id
+  and c.entidade_id is null;
+
+update public.componentes c
+set entidade_id = pai.entidade_id
+from public.componentes pai
+where pai.id = c.componente_pai_id
   and c.entidade_id is null;
 
 do $$
