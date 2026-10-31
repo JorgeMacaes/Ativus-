@@ -231,7 +231,7 @@ export default function AtivusAI(){
  };
  if(loading)return <section className="content"><div className="panel" style={{padding:24}}>A carregar Ativus AI…</div></section>;
  return <section className="content">
-  <div className="toolbar"><div><h2 className="sectiontitle">Ativus AI — Inventário Inteligente</h2><p className="muted">Reúne plantas, desenhos CAD, modelos BIM, ficheiros 3D, fotografias e documentação técnica por empreendimento.</p></div><button className="secondary" onClick={()=>{load();loadSurveyData();}}><RefreshCw size={16}/> Atualizar</button></div>
+  <div className="toolbar"><div><h2 className="sectiontitle">Ativus AI — Inventário Inteligente</h2><p className="muted">Reúne plantas, desenhos CAD, modelos BIM, ficheiros 3D, fotografias e documentação técnica por empreendimento.</p><p className="muted">Extração automática disponível: PDF, imagens, IFC e DXF. DWG, RVT/Revit, nuvens de pontos e outros formatos são arquivados, mas requerem conversores especializados ainda não ligados.</p></div><button className="secondary" onClick={()=>{load();loadSurveyData();}}><RefreshCw size={16}/> Atualizar</button></div>
   {error&&<div className="panel" role="alert" style={{padding:14,marginBottom:14,borderLeft:'4px solid #b42318',color:'#8f1d1d'}}><AlertTriangle size={17}/> {error}</div>}
   {message&&<div className="panel" role="status" style={{padding:14,marginBottom:14,color:'#176344'}}><CheckCircle2 size={17}/> {message}</div>}
   {!projects.length?<div className="panel" style={{padding:20}}>Não existem empreendimentos disponíveis para esta conta. Cria ou associa primeiro um empreendimento.</div>:<>
