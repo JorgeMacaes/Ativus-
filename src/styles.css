@@ -123,3 +123,13 @@
   .session-email{max-width:min(42vw,190px)}
   .main header{top:52px}
 }
+
+/* Agrupamentos da navegação lateral */
+.nav-group{margin:0 0 9px;padding:0 0 7px;border-bottom:1px solid rgba(190,215,231,.12)}
+.nav-group:last-child{border-bottom:0}
+.nav-group-title{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 12px 7px;border:0;background:transparent;color:#8faabd;font-size:9px;font-weight:800;letter-spacing:1.15px;text-align:left;cursor:pointer}
+.nav-group-title:hover{color:#dbe7f1}
+.nav-group-chevron{font-size:16px;line-height:1;color:#91aabd}
+.nav-group .nav{padding:10px 12px;margin:1px 0;font-size:12px}
+.nav-group .nav svg{flex:0 0 18px}
+.nav-group .nav span{min-width:0;line-height:1.3}
