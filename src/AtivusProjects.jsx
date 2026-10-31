@@ -1,12 +1,13 @@
 import React,{useCallback,useEffect,useMemo,useState} from 'react';
 import {Building2,Plus,RefreshCw,ChevronRight,ArrowLeft,AlertTriangle} from 'lucide-react';
 import {supabase} from './lib/supabase.js';
+import QRCode from 'qrcode';
 
 const TYPES=['Edifício multifamiliar','Edifício unifamiliar','Edifício de serviços / escritórios','Edifício comercial','Instalação industrial','Infraestrutura rodoviária','Ponte / viaduto','Infraestrutura ferroviária','Infraestrutura hidráulica','Equipamento público','Outro'];
 const typeToDb=v=>v;
 const typeFromDb=v=>v||'—';
 export default function AtivusProjects(){
- const [rows,setRows]=useState([]),[entities,setEntities]=useState([]),[assets,setAssets]=useState([]);
+ const [rows,setRows]=useState([]),[entities,setEntities]=useState([]),[assets,setAssets]=useState([]),[components,setComponents]=useState([]);
  const [loading,setLoading]=useState(true),[saving,setSaving]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState('');
  const [formOpen,setFormOpen]=useState(false),[selected,setSelected]=useState(null);
  const [form,setForm]=useState({nome:'',morada:'',tipo:'Edifício multifamiliar',descricao:'',entidade_id:''});
@@ -33,10 +34,13 @@ export default function AtivusProjects(){
  },[]);
  useEffect(()=>{load();},[load]);
  const openProject=async p=>{
-  setSelected(p);setAssets([]);
-  const {data,error:e}=await supabase.from('ativos').select('id,codigo,nome,tipo,localizacao,estado,classe_estado_conservacao').eq('empreendimento_id',p.id).order('nome');
-  if(e){setError(e.message);return;}
-  setAssets(data||[]);
+  setSelected(p);setAssets([]);setComponents([]);
+  const [assetResult,componentResult]=await Promise.all([
+   supabase.from('ativos').select('id,codigo,nome,tipo,localizacao,estado,classe_estado_conservacao,qr_token').eq('empreendimento_id',p.id).order('nome'),
+   supabase.from('componentes').select('id,codigo,nome,tipo,ativo_id,componente_pai_id,localizacao,qr_token').eq('empreendimento_id',p.id).order('nome')
+  ]);
+  if(assetResult.error||componentResult.error){setError(assetResult.error?.message||componentResult.error?.message);return;}
+  setAssets(assetResult.data||[]);setComponents(componentResult.data||[]);
  };
  const submit=async e=>{
   e.preventDefault();setSaving(true);setError('');setMessage('');
@@ -61,7 +65,27 @@ export default function AtivusProjects(){
   {error&&<div className="panel" role="alert" style={{padding:14,marginBottom:14,borderLeft:'4px solid #b42318',color:'#8f1d1d'}}><AlertTriangle size={17}/> {error}</div>}
   {message&&<div className="panel" role="status" style={{padding:14,marginBottom:14,color:'#176344'}}>{message}</div>}
   {!entities.length&&!selected&&<div className="panel" style={{padding:18,marginBottom:14}}><strong>Não foi possível identificar entidades disponíveis.</strong><p className="muted">A conta autenticada precisa de permissões para consultar as entidades. Não vamos criar uma entidade automaticamente nem associar empreendimentos à empresa errada.</p></div>}
-  {selected?<><div className="panel" style={{padding:20,display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(190px,1fr))',gap:16}}><div><small className="muted">Código</small><p><strong>{selected.codigo_interno||selected.codigo}</strong></p></div><div><small className="muted">Entidade responsável</small><p><strong>{entityName(selected.entidade_id)}</strong></p></div><div><small className="muted">Localização</small><p><strong>{selected.morada||'Não indicada'}</strong></p></div><div><small className="muted">Tipo</small><p><strong>{typeFromDb(selected.tipo)}</strong></p></div><div><small className="muted">Estado de manutenção</small><p><strong>{selected.estado_manutencao||'Por avaliar'}</strong></p></div><div><small className="muted">Estado de conservação</small><p><strong>{selected.classe_estado_conservacao??'Por avaliar'}</strong></p></div><div style={{gridColumn:'1/-1'}}><small className="muted">Descrição</small><p>{selected.descricao||'Sem descrição registada.'}</p></div></div><div className="panel" style={{padding:20,marginTop:16}}><h3>Ativos associados</h3>{selectedAssets.length?selectedAssets.map(a=><div className="trow" key={a.id}><div><strong>{a.nome}</strong><small>{a.codigo}</small></div><span>{a.tipo}</span><span>{a.localizacao||'—'}</span><span>{a.classe_estado_conservacao??'—'}</span></div>):<p className="empty">Ainda não existem ativos associados a este empreendimento.</p>}</div></>:<div className="panel table"><div className="thead"><span>Código / Empreendimento</span><span>Entidade</span><span>Localização</span><span>Tipo</span><span></span></div>{rows.length?rows.map(p=><div className="trow" key={p.id} role="button" tabIndex={0} onClick={()=>openProject(p)} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openProject(p)}}} style={{cursor:'pointer'}}><div><strong>{p.nome}</strong><small>{p.codigo_interno||p.codigo}</small></div><span>{entityName(p.entidade_id)}</span><span>{p.morada||'—'}</span><span>{typeFromDb(p.tipo)}</span><span><button type="button" className="secondary" onClick={e=>{e.stopPropagation();openProject(p);}}>Ver ficha <ChevronRight size={16}/></button></span></div>):<p className="empty">Ainda não existem empreendimentos na base de dados para esta conta.</p>}</div>}
+  {selected?<><div className="panel" style={{padding:20,display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(190px,1fr))',gap:16}}><div><small className="muted">Código</small><p><strong>{selected.codigo_interno||selected.codigo}</strong></p></div><div><small className="muted">Entidade responsável</small><p><strong>{entityName(selected.entidade_id)}</strong></p></div><div><small className="muted">Localização</small><p><strong>{selected.morada||'Não indicada'}</strong></p></div><div><small className="muted">Tipo</small><p><strong>{typeFromDb(selected.tipo)}</strong></p></div><div><small className="muted">Estado de manutenção</small><p><strong>{selected.estado_manutencao||'Por avaliar'}</strong></p></div><div><small className="muted">Estado de conservação</small><p><strong>{selected.classe_estado_conservacao??'Por avaliar'}</strong></p></div><div style={{gridColumn:'1/-1'}}><small className="muted">Descrição</small><p>{selected.descricao||'Sem descrição registada.'}</p></div></div><div className="panel" style={{padding:20,marginTop:16}}><h3>QR Code do empreendimento</h3><QrCodeCard item={selected} kind="Empreendimento"/><h3 style={{marginTop:24}}>Ativos associados</h3>{selectedAssets.length?selectedAssets.map(a=><div className="trow" key={a.id}><div><strong>{a.nome}</strong><small>{a.codigo}</small></div><span>{a.tipo}</span><span>{a.localizacao||'—'}</span><span>{a.classe_estado_conservacao??'—'}</span><QrCodeCard item={a} kind="Ativo"/></div>):<p className="empty">Ainda não existem ativos associados a este empreendimento.</p>}<h3 style={{marginTop:24}}>Componentes e subcomponentes</h3>{components.length?components.map(c=><div className="trow" key={c.id}><div><strong>{c.nome}</strong><small>{c.codigo} · {c.tipo==='subcomponente'?'Subcomponente':'Componente'}</small></div><span>{assets.find(a=>a.id===c.ativo_id)?.nome||'Elemento associado por hierarquia'}</span><QrCodeCard item={c} kind={c.tipo==='subcomponente'?'Subcomponente':'Componente'}/></div>):<p className="empty">Ainda não existem componentes associados.</p>}</div></>:<div className="panel table"><div className="thead"><span>Código / Empreendimento</span><span>Entidade</span><span>Localização</span><span>Tipo</span><span></span></div>{rows.length?rows.map(p=><div className="trow" key={p.id} role="button" tabIndex={0} onClick={()=>openProject(p)} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openProject(p)}}} style={{cursor:'pointer'}}><div><strong>{p.nome}</strong><small>{p.codigo_interno||p.codigo}</small></div><span>{entityName(p.entidade_id)}</span><span>{p.morada||'—'}</span><span>{typeFromDb(p.tipo)}</span><span><button type="button" className="secondary" onClick={e=>{e.stopPropagation();openProject(p);}}>Ver ficha <ChevronRight size={16}/></button></span></div>):<p className="empty">Ainda não existem empreendimentos na base de dados para esta conta.</p>}</div>}
   {formOpen&&<div role="presentation" onClick={()=>setFormOpen(false)} style={{position:'fixed',inset:0,zIndex:2200,background:'rgba(10,28,44,.58)',display:'grid',placeItems:'center',padding:18}}><form onSubmit={submit} onClick={e=>e.stopPropagation()} style={{width:'100%',maxWidth:540,maxHeight:'90vh',overflowY:'auto',background:'#fff',borderRadius:18,padding:22,boxSizing:'border-box'}}><div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:12}}><div><span className="eyebrow">SEVEN M ATIVUS</span><h2 style={{margin:'8px 0',color:'#173b59'}}>Novo empreendimento</h2><p className="muted">O registo será guardado na base de dados partilhada.</p></div><button type="button" className="secondary" onClick={()=>setFormOpen(false)}>Fechar</button></div><label style={{display:'block',marginTop:14,fontWeight:700}}>Entidade responsável *</label><select required value={form.entidade_id} onChange={e=>setForm(v=>({...v,entidade_id:e.target.value}))} style={{width:'100%',padding:12,marginTop:6,border:'1px solid #cad8e5',borderRadius:9,background:'#fff'}}><option value="">Selecionar empresa / cliente</option>{entities.map(x=><option key={x.id} value={x.id}>{x.nome}</option>)}</select><label style={{display:'block',marginTop:14,fontWeight:700}}>Nome do empreendimento *</label><input required maxLength={180} value={form.nome} onChange={e=>setForm(v=>({...v,nome:e.target.value}))} placeholder="Ex.: Edifício Rua Central" style={{width:'100%',padding:12,marginTop:6,boxSizing:'border-box',border:'1px solid #cad8e5',borderRadius:9}}/><label style={{display:'block',marginTop:14,fontWeight:700}}>Morada / Localização</label><input value={form.morada} onChange={e=>setForm(v=>({...v,morada:e.target.value}))} placeholder="Morada, localidade ou coordenadas" style={{width:'100%',padding:12,marginTop:6,boxSizing:'border-box',border:'1px solid #cad8e5',borderRadius:9}}/><label style={{display:'block',marginTop:14,fontWeight:700}}>Tipo de empreendimento *</label><select required value={form.tipo} onChange={e=>setForm(v=>({...v,tipo:e.target.value}))} style={{width:'100%',padding:12,marginTop:6,boxSizing:'border-box',border:'1px solid #cad8e5',borderRadius:9,background:'#fff'}}>{TYPES.map(x=><option key={x}>{x}</option>)}</select><label style={{display:'block',marginTop:14,fontWeight:700}}>Descrição</label><textarea rows={3} value={form.descricao} onChange={e=>setForm(v=>({...v,descricao:e.target.value}))} style={{width:'100%',padding:12,marginTop:6,boxSizing:'border-box',border:'1px solid #cad8e5',borderRadius:9}}/><div style={{display:'flex',justifyContent:'flex-end',gap:10,marginTop:20}}><button type="button" className="secondary" onClick={()=>setFormOpen(false)}>Cancelar</button><button type="submit" className="primary" disabled={saving}>{saving?'A guardar…':'Guardar no Supabase'}</button></div></form></div>}
  </section>;
+}
+
+function QrCodeCard({item,kind}){
+ const [src,setSrc]=React.useState('');
+ const token=item?.qr_token;
+ React.useEffect(()=>{
+  let live=true;
+  if(token){const target=window.location.origin+window.location.pathname+'?report='+encodeURIComponent(token);QRCode.toDataURL(target,{width:220,margin:1,errorCorrectionLevel:'M'}).then(v=>{if(live)setSrc(v)}).catch(()=>{if(live)setSrc('')});}
+  return()=>{live=false};
+ },[token]);
+ if(!token)return <span className="muted">QR indisponível</span>;
+ const target=window.location.origin+window.location.pathname+'?report='+encodeURIComponent(token);
+ return <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap',padding:6}}>
+  {src?<img src={src} alt={'QR Code '+kind} width="88" height="88" style={{objectFit:'contain'}}/>:<span className="muted">A gerar QR…</span>}
+  <div style={{display:'flex',flexDirection:'column',gap:5}}>
+   <small className="muted">{kind}</small>
+   {src&&<a href={src} download={'QR-'+(item.codigo||item.nome||kind)+'.png'} style={{fontSize:12}}>Descarregar PNG</a>}
+   <button type="button" className="secondary" onClick={()=>window.open(target,'_blank','noopener,noreferrer')} style={{fontSize:12,padding:'6px 8px'}}>Testar QR</button>
+  </div>
+ </div>;
 }
