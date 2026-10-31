@@ -171,3 +171,70 @@ Foram encontrados triggers de inspeções, trabalhos, custos, orçamentos e hist
 ## 11. Limitação desta entrega
 
 Esta auditoria é uma especificação e inventário, não uma migração executável. O ambiente de produção foi consultado apenas em leitura. Não foi criada branch de base de dados, não foi aplicada DDL, não foram alteradas políticas, funções, triggers, Storage ou Edge Functions e não foi publicado código.
+
+## 12. Plano de validação — execução em ambiente isolado
+
+### Conjunto A — integridade da árvore
+- Criar ativo principal sem pai.
+- Criar componente ligado ao principal.
+- Criar subcomponente ligado ao componente.
+- Rejeitar pai igual ao próprio ativo.
+- Rejeitar ciclos (A é pai de B e B passa a pai de A).
+- Rejeitar associação pai/filho a entidades diferentes.
+- Mover um ramo e confirmar que todos os descendentes continuam ligados ao mesmo ativo principal.
+- Confirmar que a remoção lógica de um nó não apaga os seus descendentes nem o histórico.
+
+### Conjunto B — migração e reconciliação
+- Confirmar a conversão de cada registo antigo num único registo canónico.
+- Comparar UUID, código, QR, nome, tipo, estado, morada, localização e campos técnicos.
+- Confirmar que Gramacho e Vale da Pinta ficam filhos do Pestana.
+- Confirmar que Casa Rua de Casal do Monte 54 fica como ativo principal independente.
+- Confirmar que não existe qualquer registo órfão, duplicado ou com entidade incorreta.
+- Confirmar que a ocorrência existente mantém o ID, código, texto, localização, estado, notas e ligação ao nó Gramacho.
+
+### Conjunto C — permissões e segurança
+- Utilizador da entidade A lê e altera apenas ativos da entidade A.
+- Utilizador da entidade A não consegue consultar nem alterar ativos da entidade B, mesmo conhecendo UUIDs e QR tokens.
+- Administrador de plataforma mantém os privilégios previstos.
+- Utilizador sem sessão não acede a dados privados.
+- Políticas de Storage não permitem leitura cruzada entre entidades.
+- Funções SECURITY DEFINER validam a entidade e o utilizador no servidor e não confiam em IDs enviados pelo cliente.
+
+### Conjunto D — fluxos operacionais
+- Registar ocorrência por QR no ativo principal, componente e subcomponente.
+- Criar inspeção e guardar itens/snapshots no nó correto.
+- Converter registo de inspeção em patologia.
+- Converter ocorrência em patologia.
+- Criar trabalho a partir de patologia/agendamento e manter o nó de origem.
+- Anexar e consultar documentos técnicos.
+- Associar dispositivo de monitorização e leituras ao nó correto.
+- Gerar relatórios por ativo principal e por ramo da árvore.
+- Publicar proposta da IA como ativo ou descendente sem criar duplicados.
+
+### Conjunto E — recuperação e regressão
+- Fazer backup antes da migração e comprovar restauro num ambiente separado.
+- Simular interrupção a meio da fase de cópia e repetir sem duplicar registos.
+- Executar reconciliação duas vezes e obter o mesmo resultado.
+- Confirmar que a versão anterior da aplicação continua operacional durante a fase de compatibilidade.
+- Confirmar que a nova versão não escreve em paralelo nos modelos antigo e novo.
+- Só avançar para contração após todos os testes passarem e a aprovação explícita do responsável.
+
+## 13. Critérios objetivos de aceitação
+
+A migração só pode ser considerada aprovada quando:
+- 100% dos registos de origem têm correspondência canónica;
+- 0 colisões de UUID e QR;
+- 0 referências órfãs;
+- 0 ciclos hierárquicos;
+- 0 violações de isolamento entre entidades;
+- 100% dos fluxos críticos do conjunto D passam;
+- backup restaurado com sucesso;
+- ocorrência histórica de Gramacho preservada sem alteração de identidade;
+- funções, políticas, triggers, views, Storage e Edge Functions validadas;
+- teste de regressão da aplicação concluído.
+
+## 14. Estado do ambiente de teste em 31-10-2026
+
+A consulta ao projeto Supabase confirmou que não existe atualmente nenhuma branch de desenvolvimento de base de dados. A lista de migrações existentes foi consultada e inclui migrações recentes de inventário, IA, manutenção, documentos e monitorização. Não foi criada uma branch, porque a criação pode ter custo recorrente e exige confirmação do custo antes de avançar.
+
+Consequentemente, o próximo bloqueio operacional é obter autorização informada para criar uma branch de desenvolvimento Supabase, depois de apresentar o custo indicado pela organização. Até lá, a preparação permanece documental e de leitura.
