@@ -25,7 +25,7 @@ export default function Inspections(){
    const ids=[...new Set((members||[]).map(x=>x.entidade_id))];if(!ids.length)throw new Error('A conta não tem entidades ativas associadas.');
    const [eRes,iRes]=await Promise.all([
     supabase.from('empreendimentos').select('id,nome,codigo,entidade_id').eq('ativo',true).in('entidade_id',ids).order('nome'),
-    supabase.from('inspecoes').select('id,empreendimento_id,codigo,tipo,data_inspecao,inspetor_nome,objetivo,observacoes,estado,criado_em').order('data_inspecao',{ascending:false})
+    supabase.from('inspecoes').select('id,entidade_id,empreendimento_id,ativo_id,codigo,tipo,data_inspecao,inspetor_nome,objetivo,observacoes,estado,criado_em').order('data_inspecao',{ascending:false})
    ]);
    if(eRes.error)throw eRes.error;if(iRes.error)throw iRes.error;setEnterprises(eRes.data||[]);setRows(iRes.data||[]);
   }catch(e){setError(e?.message||'Não foi possível carregar as inspeções.')}finally{setLoading(false)}
@@ -60,8 +60,8 @@ export default function Inspections(){
    const {data:userData,error:userError}=await supabase.auth.getUser();if(userError)throw userError;
    const {data:allComponents,error:cErr}=await supabase.from('componentes').select('id,codigo,nome,tipo,ativo_id,componente_pai_id,localizacao,empreendimento_id,entidade_id').eq('entidade_id',asset.entidade_id).order('nome');if(cErr)throw cErr;
    const code='INS-'+Date.now().toString().slice(-8);
-   const payload={entidade_id:asset.entidade_id,empreendimento_id:asset.empreendimento_id||null,codigo:code,tipo:form.tipo,data_inspecao:form.data_inspecao,inspetor_id:userData?.user?.id||null,inspetor_nome:form.inspetor_nome.trim()||userData?.user?.email||null,objetivo:form.objetivo.trim()||null,observacoes:form.observacoes.trim()||null,estado:'em_preparacao'};
-   const {data:created,error:e2}=await supabase.from('inspecoes').insert(payload).select('id,entidade_id,empreendimento_id,codigo,tipo,data_inspecao,inspetor_nome,objetivo,observacoes,estado,criado_em').single();if(e2)throw e2;
+   const payload={entidade_id:asset.entidade_id,empreendimento_id:asset.empreendimento_id||null,ativo_id:asset.id,codigo:code,tipo:form.tipo,data_inspecao:form.data_inspecao,inspetor_id:userData?.user?.id||null,inspetor_nome:form.inspetor_nome.trim()||userData?.user?.email||null,objetivo:form.objetivo.trim()||null,observacoes:form.observacoes.trim()||null,estado:'em_preparacao'};
+   const {data:created,error:e2}=await supabase.from('inspecoes').insert(payload).select('id,entidade_id,empreendimento_id,ativo_id,codigo,tipo,data_inspecao,inspetor_nome,objetivo,observacoes,estado,criado_em').single();if(e2)throw e2;
    const snapshot=makeSnapshot(asset,allComponents||[],created.id);
    const {data:items,error:itemError}=await supabase.from('inspecao_itens').insert(snapshot).select(itemSelect);
    if(itemError){await supabase.from('inspecoes').delete().eq('id',created.id);throw itemError}
