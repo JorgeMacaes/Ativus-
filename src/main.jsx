@@ -1,6 +1,6 @@
 import React,{useMemo,useState} from 'react';
 import {createRoot} from 'react-dom/client';
-import {Building2,ClipboardCheck,ClipboardList,AlertTriangle,CalendarDays,Plus,Search,Settings,FileText,Activity,ChevronRight,Menu,X,LayoutDashboard,Boxes,Link2,Brain,ShieldCheck,Truck,BadgeCheck,CreditCard,ContactRound,Users,Handshake,Mail,Phone,RefreshCw} from 'lucide-react';
+import {Building2,ClipboardCheck,ClipboardList,AlertTriangle,CalendarDays,Plus,Search,Settings,FileText,Activity,ChevronRight,Menu,X,LayoutDashboard,Boxes,Link2,Brain,ShieldCheck,Truck,BadgeCheck,CreditCard,ContactRound,Users,Handshake,Mail,Phone,RefreshCw,BookOpen,Headset} from 'lucide-react';
 import './styles.css';
 import { backendConfigured, supabase } from './lib/supabase.js';
 import CRMCompanies from './CRMCompanies.jsx';
@@ -12,6 +12,7 @@ import PathologiesLive from './PathologiesLive.jsx';
 import PublicOccurrence from './PublicOccurrence.jsx';
 import TechnicalDocuments from './TechnicalDocuments.jsx';
 import Monitoring from './Monitoring.jsx';
+import {HelpCenter,HelpDesk} from './HelpCenter.jsx';
 
 const seedProjects=[
  {id:'EMP-0001',name:'Edifício Rua Central',location:'Porto',type:'Edifício multifamiliar',status:'Em curso',description:'Empreendimento de demonstração'}
@@ -53,8 +54,9 @@ function App(){
  const [projectError,setProjectError]=useState('');
  const filtered=useMemo(()=>assets.filter(a=>(a.name+' '+a.location+' '+a.id).toLowerCase().includes(query.toLowerCase())),[assets,query]);
  const current=selected?assets.find(a=>a.id===selected):null;
- const nav=[['dashboard','Dashboard',LayoutDashboard],['projects','Empreendimentos',Building2],['assets','Ativos / Inventário',Building2],['inspections','Inspeções',ClipboardCheck],['occurrences','Ocorrências',ClipboardList],['pathologies','Patologias',AlertTriangle],['agenda','Agenda',CalendarDays],['monitoring','Sistemas de Monitorização',Activity],['documents','Documentação',FileText],['ativus-ai','Ativus AI · Inventário Inteligente',Brain],['crm','CRM · Clientes e Contactos',ContactRound],['suppliers','Fornecedores e Licenças',Truck],['settings','Parametrização',Settings]];
+ const nav=[['dashboard','Dashboard',LayoutDashboard],['help','Centro de Ajuda',BookOpen],['helpdesk','Ativus Help Desk',Headset],['projects','Empreendimentos',Building2],['assets','Ativos / Inventário',Building2],['inspections','Inspeções',ClipboardCheck],['occurrences','Ocorrências',ClipboardList],['pathologies','Patologias',AlertTriangle],['agenda','Agenda',CalendarDays],['monitoring','Sistemas de Monitorização',Activity],['documents','Documentação',FileText],['ativus-ai','Ativus AI · Inventário Inteligente',Brain],['crm','CRM · Clientes e Contactos',ContactRound],['suppliers','Fornecedores e Licenças',Truck],['settings','Parametrização',Settings]];
  const go=id=>{setView(id);setMenu(false);if(id!=='asset')setSelected(null);if(id!=='project')setSelectedProject(null)};
+ React.useEffect(()=>{const handler=e=>go(e.detail);window.addEventListener('ativus:navigate',handler);return()=>window.removeEventListener('ativus:navigate',handler)},[]);
  const addAsset=()=>{const name=window.prompt('Nome do ativo:');if(!name||!name.trim())return;const n=Math.max(0,...assets.map(a=>Number(String(a.id).replace(/\\D/g,''))||0))+1,a={id:'ATV-'+String(n).padStart(4,'0'),name:name.trim(),type:'Edifício residencial',location:'Por definir',status:'Ativo',ec:0,maintenance:'Bom',components:0,pathologies:0};const next=[a,...assets];setAssets(save('ativus_assets',next));setSelected(a.id);setView('asset')};
  const addInspection=asset=>{const n=inspections.length+1,i={id:'INS-'+String(n).padStart(4,'0'),asset,type:'Rotina',date:new Date().toISOString().slice(0,10),inspector:'Utilizador atual',ec:null,maintenance:'Bom',pathologies:0};setInspections(save('ativus_inspections',[i,...inspections]))};
  const addPathology=()=>{const n=pathologies.length+1,p={id:'PAT-'+String(n).padStart(4,'0'),asset:current?.id||assets[0]?.id||'ATV-0001',subcomponent:'Novo subcomponente',material:materials[0]||'Betão',type:'Fissuração',characteristic:'Diagonal',cause:'',effect:'',work:'',unit:'m',status:'Identificada',ec:3};setPathologies(save('ativus_pathologies',[p,...pathologies]));setView('pathologies')};
@@ -80,7 +82,9 @@ function App(){
      <p style={{fontSize:11,color:'#708396',marginTop:14}}>Os registos desta versão continuam guardados localmente neste navegador.</p>
     </form>
    </div>}
-   {view==='dashboard'&&<Dashboard assets={assets} inspections={inspections} pathologies={pathologies} onAssets={()=>go('assets')}/>}
+   {view==='dashboard'&&<Dashboard projects={projects} assets={assets} inspections={inspections} pathologies={pathologies} onAssets={()=>go('assets')}/>}
+   {view==='help'&&<HelpCenter/>}
+   {view==='helpdesk'&&<HelpDesk/>}
    {view==='assets'&&<Assets assets={filtered} query={query} setQuery={setQuery} onNew={addAsset} onOpen={id=>{setSelected(id);setView('asset')}}/>}
    {view==='asset'&&current&&<AssetDetail asset={current} inspections={inspections} pathologies={pathologies} onBack={()=>go('assets')} onNewInspection={()=>addInspection(current.id)} onNewPathology={addPathology}/>}
    {view==='inspections'&&<LiveInspections/>}
@@ -259,7 +263,7 @@ function Suppliers(){
   </div>}
  </section>;
 }
-function Dashboard({assets,inspections,pathologies,onAssets}){
+function Dashboard({projects,assets,inspections,pathologies,onAssets}){
  const open=pathologies.filter(p=>!['Encerrada','Verificada'].includes(p.status)).length;
  const ecCounts=[0,1,2,3,4,5].map(ec=>({label:'EC '+ec,value:assets.filter(a=>Number(a.ec)===ec).length}));
  const severity=[{label:'Crítica · EC5',value:pathologies.filter(p=>Number(p.ec)===5).length},{label:'Alta · EC4',value:pathologies.filter(p=>Number(p.ec)===4).length},{label:'Moderada · EC3',value:pathologies.filter(p=>Number(p.ec)===3).length},{label:'Baixa · EC0–2',value:pathologies.filter(p=>Number(p.ec)<=2).length}];
@@ -268,7 +272,7 @@ function Dashboard({assets,inspections,pathologies,onAssets}){
  const recent=inspections.slice().sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,4);
  return <section className="content">
   <div className="hero"><div><span className="pill">Visão geral</span><h2>Visão global dos ativos</h2><p>Indicadores para acompanhar o inventário, as inspeções, o estado de conservação e as anomalias registadas.</p></div></div>
-  <div className="stats"><Stat icon={Building2} label="Ativos registados" value={assets.length}/><Stat icon={ClipboardCheck} label="Inspeções registadas" value={inspections.length}/><Stat icon={AlertTriangle} label="Patologias por tratar" value={open}/><Stat icon={ShieldCheck} label="Ativos em EC5" value={assets.filter(a=>Number(a.ec)===5).length}/></div>
+  <div className="stats"><Stat icon={Building2} label="Empreendimentos" value={projects.length}/><Stat icon={Boxes} label="Ativos inventariados" value={assets.length}/><Stat icon={ClipboardCheck} label="Inspeções registadas" value={inspections.length}/><Stat icon={AlertTriangle} label="Patologias por tratar" value={open}/></div>
   <div className="dashgrid">
    <div className="panel chartpanel"><div className="panelhead"><div><h3>Estado de conservação dos ativos</h3><span>Distribuição por classe EC</span></div><span className="charttag">Inventário</span></div>
     <div className="ecbars">{ecCounts.map(item=><div className="ecbar" key={item.label}><div className="ecbartrack"><div className={'ecbarfill ecfill'+item.label.slice(-1)} style={{height:(item.value/maxEC*100)+'%'}}/><span>{item.value}</span></div><small>{item.label}</small></div>)}</div>
@@ -285,7 +289,7 @@ function Dashboard({assets,inspections,pathologies,onAssets}){
     {assets.slice(0,4).map(a=><AssetRow key={a.id} a={a} onClick={onAssets}/>)}
    </div>
   </div>
-  <div className="dashfoot"><ShieldCheck size={17}/><span><b>Nota de fiabilidade:</b> os gráficos são calculados a partir dos registos disponíveis neste navegador. Não representam dados partilhados entre utilizadores nem substituem um backend central.</span></div>
+  <div className="dashfoot"><ShieldCheck size={17}/><span><b>Nota de fiabilidade:</b> os indicadores são calculados a partir dos registos disponíveis nesta sessão de trabalho. Confirme a sincronização antes de utilizar estes valores em relatórios oficiais.</span></div>
  </section>
 }
 function Stat({icon:Icon,label,value}){return <div className="stat"><div className="staticon"><Icon size={20}/></div><div><span>{label}</span><strong>{value}</strong></div></div>}
