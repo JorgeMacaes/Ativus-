@@ -69,7 +69,22 @@ export default function AtivusAI(){
  const [newPlan,setNewPlan]=useState({codigo:'',nome:'',descricao:'',tipo:'preventiva',periodicidade_valor:6,periodicidade_unidade:'meses'});
  const [newRule,setNewRule]=useState({tipo_inspecao:'rotina',intervalo_dias:90,proxima_inspecao:'',observacoes:''});
  const [actionBusy,setActionBusy]=useState('');
+ const [inventoryAssets,setInventoryAssets]=useState([]);
+ const [inventoryComponents,setInventoryComponents]=useState([]);
+ const [planElement,setPlanElement]=useState({plano_id:'',ativo_id:'',componente_id:'',instrucoes:''});
+ const [ruleElement,setRuleElement]=useState({ativo_id:'',componente_id:''});
 
+
+ const loadInventoryChoices=useCallback(async()=>{
+  if(!selected)return;
+  const [a,c]=await Promise.all([
+   supabase.from('ativos').select('id,codigo,nome,tipo').eq('empreendimento_id',selected).order('codigo').limit(500),
+   supabase.from('componentes').select('id,codigo,nome,tipo,ativo_id,componente_pai_id').eq('empreendimento_id',selected).order('codigo').limit(1000)
+  ]);
+  if(a.error)throw a.error;if(c.error)throw c.error;
+  setInventoryAssets(a.data||[]);setInventoryComponents(c.data||[]);
+ },[selected]);
+ useEffect(()=>{loadInventoryChoices().catch(e=>setError(e.message||'Não foi possível carregar o inventário.'));},[loadInventoryChoices]);
  const loadOperationalData=useCallback(async()=>{
   if(!selected)return;
   setOperationalLoading(true);
@@ -219,6 +234,21 @@ export default function AtivusAI(){
      <button className="primary" disabled={!!actionBusy} onClick={async()=>{setActionBusy('rule');setError('');try{if(!newRule.proxima_inspecao)throw new Error('Indica a data da próxima inspeção.');const {data:user}=await supabase.auth.getUser();const {error}=await supabase.from('regras_inspecao_periodica').insert({empreendimento_id:selected,tipo_inspecao:newRule.tipo_inspecao,intervalo_dias:Number(newRule.intervalo_dias),proxima_inspecao:newRule.proxima_inspecao,observacoes:newRule.observacoes||null,criado_por:user?.user?.id});if(error)throw error;setNewRule({tipo_inspecao:'rotina',intervalo_dias:90,proxima_inspecao:'',observacoes:''});setMessage('Regra de inspeção criada.');}catch(e){setError(e.message||'Não foi possível criar a regra.');}finally{setActionBusy('');}}}>{actionBusy==='rule'?'A guardar…':'Criar regra'}</button>
     </div>
    </div>
+
+    <div style={{padding:14,border:'1px solid #dce6ee',borderRadius:10,margin:'12px 0'}}>
+     <h4 style={{marginTop:0}}>Associar ativos e componentes a um plano</h4>
+     <select value={planElement.plano_id} onChange={e=>setPlanElement(v=>({...v,plano_id:e.target.value}))}><option value="">Selecionar plano de manutenção</option>{maintenancePlans.map(p=><option key={p.id} value={p.id}>{p.codigo} — {p.nome}</option>)}</select>
+     <select value={planElement.ativo_id} onChange={e=>setPlanElement(v=>({...v,ativo_id:e.target.value,componente_id:''}))} style={{marginLeft:8}}><option value="">Ativo (opcional)</option>{inventoryAssets.map(a=><option key={a.id} value={a.id}>{a.codigo} — {a.nome}</option>)}</select>
+     <select value={planElement.componente_id} onChange={e=>setPlanElement(v=>({...v,componente_id:e.target.value,ativo_id:''}))} style={{marginLeft:8}}><option value="">Componente (opcional)</option>{inventoryComponents.map(c=><option key={c.id} value={c.id}>{c.codigo} — {c.nome}</option>)}</select>
+     <input placeholder="Instruções de manutenção" value={planElement.instrucoes} onChange={e=>setPlanElement(v=>({...v,instrucoes:e.target.value}))} style={{display:'block',width:'100%',padding:9,margin:'8px 0',boxSizing:'border-box'}}/>
+     <button className="secondary" disabled={!!actionBusy} onClick={async()=>{setActionBusy('linkplan');try{if(!planElement.plano_id||(!planElement.ativo_id&&!planElement.componente_id))throw new Error('Seleciona um plano e um ativo ou componente.');const {error}=await supabase.from('plano_manutencao_elementos').insert({plano_id:planElement.plano_id,ativo_id:planElement.ativo_id||null,componente_id:planElement.componente_id||null,instrucoes:planElement.instrucoes||null});if(error)throw error;setPlanElement({plano_id:planElement.plano_id,ativo_id:'',componente_id:'',instrucoes:''});setMessage('Elemento associado ao plano de manutenção.');}catch(e){setError(e.message||'Não foi possível associar o elemento.');}finally{setActionBusy('');}}}>Associar ao plano</button>
+    </div>
+    <div style={{padding:14,border:'1px solid #dce6ee',borderRadius:10,margin:'12px 0'}}>
+     <h4 style={{marginTop:0}}>Aplicar regra de inspeção a um elemento</h4>
+     <select value={ruleElement.ativo_id} onChange={e=>setRuleElement(v=>({...v,ativo_id:e.target.value,componente_id:''}))}><option value="">Ativo (opcional)</option>{inventoryAssets.map(a=><option key={a.id} value={a.id}>{a.codigo} — {a.nome}</option>)}</select>
+     <select value={ruleElement.componente_id} onChange={e=>setRuleElement(v=>({...v,componente_id:e.target.value,ativo_id:''}))} style={{marginLeft:8}}><option value="">Componente (opcional)</option>{inventoryComponents.map(c=><option key={c.id} value={c.id}>{c.codigo} — {c.nome}</option>)}</select>
+     <button className="secondary" disabled={!!actionBusy} style={{marginLeft:8}} onClick={async()=>{setActionBusy('rulelink');try{if(!ruleElement.ativo_id&&!ruleElement.componente_id)throw new Error('Seleciona um ativo ou componente para a regra.');const {data:user}=await supabase.auth.getUser();const {error}=await supabase.from('regras_inspecao_periodica').insert({empreendimento_id:selected,ativo_id:ruleElement.ativo_id||null,componente_id:ruleElement.componente_id||null,tipo_inspecao:newRule.tipo_inspecao,intervalo_dias:Number(newRule.intervalo_dias),proxima_inspecao:newRule.proxima_inspecao||new Date().toISOString().slice(0,10),observacoes:newRule.observacoes||null,criado_por:user?.user?.id});if(error)throw error;setMessage('Regra aplicada ao elemento selecionado.');}catch(e){setError(e.message||'Não foi possível aplicar a regra.');}finally{setActionBusy('');}}}>Aplicar regra ao elemento</button>
+    </div>
    <div style={{display:'flex',gap:8,flexWrap:'wrap',margin:'12px 0'}}>
     <button className="secondary" disabled={!!actionBusy} onClick={async()=>{setActionBusy('kpi');try{const start=new Date();start.setDate(1);const end=new Date(start.getFullYear(),start.getMonth()+1,0);const fmt=d=>d.toISOString().slice(0,10);const {error}=await supabase.rpc('ativus_calcular_indicadores',{p_empreendimento_id:selected,p_inicio:fmt(start),p_fim:fmt(end)});if(error)throw error;setMessage('Indicadores do mês calculados.');await loadOperationalData();}catch(e){setError(e.message||'Não foi possível calcular indicadores.');}finally{setActionBusy('');}}}>Calcular indicadores do mês</button>
     <button className="secondary" disabled={!!actionBusy||!maintenancePlans.some(p=>p.ativo)} onClick={async()=>{setActionBusy('schedule');try{const p=maintenancePlans.find(x=>x.ativo);const {error}=await supabase.rpc('ativus_gerar_proxima_manutencao',{p_plano_id:p.id});if(error)throw error;setMessage('Próxima manutenção agendada para o plano '+p.nome+'.');await loadOperationalData();}catch(e){setError(e.message||'Não foi possível gerar o agendamento.');}finally{setActionBusy('');}}}>Gerar próximo agendamento</button>
