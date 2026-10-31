@@ -52,7 +52,7 @@ export default function AtivusAI(){
   setSurveys(surveyRows||[]);
   const ids=(surveyRows||[]).map(x=>x.id);
   if(!ids.length){setDocuments([]);return;}
-  const {data:docRows,error:docError}=await supabase.from('ai_documentos').select('id,levantamento_id,nome_ficheiro,mime_type,tamanho_bytes,estado,created_at,caminho_storage').in('levantamento_id',ids).order('created_at',{ascending:false});
+  const {data:docRows,error:docError}=await supabase.from('ai_documentos').select('id,levantamento_id,nome_ficheiro,mime_type,tamanho_bytes,estado,criado_em,caminho_storage').in('levantamento_id',ids).order('created_at',{ascending:false});
   if(docError){setError(docError.message);return;}
   setDocuments(docRows||[]);
  },[selected]);
