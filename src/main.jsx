@@ -184,7 +184,10 @@ function CRM(){
    </form>
   </div>}
  <CRMActivityPanel/>
- </section>;\n}\n\nfunction Suppliers(){
+ </section>;
+}
+
+function Suppliers(){
  const [loading,setLoading]=useState(true);
  const [saving,setSaving]=useState(false);
  const [supplier,setSupplier]=useState(null);
