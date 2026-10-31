@@ -17,8 +17,12 @@ export default function AtivusProjects(){
    const {data:userData,error:userError}=await supabase.auth.getUser();
    if(userError)throw userError;
    if(!userData?.user)throw new Error('Inicia sessão para gerir empreendimentos.');
+   const {data:members,error:memberError}=await supabase.from('membros_entidade').select('entidade_id').eq('utilizador_id',userData.user.id).eq('ativo',true);
+   if(memberError)throw memberError;
+   const entityIds=[...new Set((members||[]).map(x=>x.entidade_id))];
+   if(!entityIds.length)throw new Error('A tua conta ainda não está associada a nenhuma entidade ativa.');
    const [entityResult,projectResult]=await Promise.all([
-    supabase.from('entidades').select('id,nome,ativa').eq('ativa',true).order('nome'),
+    supabase.from('entidades').select('id,nome,ativa').eq('ativa',true).in('id',entityIds).order('nome'),
     supabase.from('empreendimentos').select('id,entidade_id,codigo,codigo_interno,nome,tipo,morada,descricao,ativo,estado_manutencao,classe_estado_conservacao,criado_em').eq('ativo',true).order('nome')
    ]);
    if(entityResult.error)throw entityResult.error;
