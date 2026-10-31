@@ -53,7 +53,7 @@ export default function AtivusAI(){
   setSurveys(surveyRows||[]);
   const ids=(surveyRows||[]).map(x=>x.id);
   if(!ids.length){setDocuments([]);setProposals([]);return;}
-  const {data:docRows,error:docError}=await supabase.from('ai_documentos').select('id,levantamento_id,nome_ficheiro,mime_type,tamanho_bytes,estado,criado_em,caminho_storage').in('levantamento_id',ids).order('criado_em',{ascending:false});
+  const {data:docRows,error:docError}=await supabase.from('ai_documentos').select('id,levantamento_id,nome_ficheiro,mime_type,tamanho_bytes,estado,formato_familia,criado_em,caminho_storage').in('levantamento_id',ids).order('criado_em',{ascending:false});
   if(docError){setError(docError.message);return;}
   setDocuments(docRows||[]);
   const {data:proposalRows,error:proposalError}=await supabase.from('ai_elementos_propostos').select('id,levantamento_id,tipo_elemento,dados_propostos,localizacao_proposta,confianca,estado_revisao,evidencia,registo_oficial_id,proposta_pai_id,chave_consolidacao').in('levantamento_id',ids).order('criado_em',{ascending:false});
