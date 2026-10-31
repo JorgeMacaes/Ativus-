@@ -44,7 +44,7 @@ begin
     'inspecoes','patologias','trabalhos','ocorrencias',
     'documentos_tecnicos','ai_levantamentos','dispositivos_monitorizacao'
   ] loop
-    for p in select policyname from pg_policies where schemaname='public' and tablename=t loop
+    for p in select policyname from pg_policies where schemaname='public' and tablename=t and (coalesce(qual,'') || coalesce(with_check,'')) like '%user_can_access_empreendimento%' loop
       execute format('drop policy %I on public.%I',p.policyname,t);
     end loop;
     execute format('create policy %I on public.%I for select to authenticated using (public.user_can_access_entidade(entidade_id))',t||'_entity_select',t);
