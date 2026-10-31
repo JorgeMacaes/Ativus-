@@ -211,7 +211,8 @@ function Suppliers(){
    const {data,error:fnError}=await supabase.functions.invoke('fornecedor-portal',{method:'GET'});
    if(fnError)throw fnError;
    if(data?.error)throw new Error(data.error);
-   setSupplier(data?.supplier||null);
+   const record=data?.supplier;
+   setSupplier(record&&typeof record==='object'&&!Array.isArray(record)?record:null);
   }catch(e){setError(e?.message||'Não foi possível consultar o portal de fornecedores.');}
   finally{setLoading(false);}
  };
@@ -247,7 +248,7 @@ function Suppliers(){
    </div>
    <div className="grid2" style={{marginTop:18}}>
     <div><h3>Dados de contacto</h3><p>{supplier.email}</p><p>{supplier.telefone||'Telefone não indicado'}</p></div>
-    <div><h3>Atuação</h3><p><b>Especialidades:</b> {(supplier.specialties||[]).map(x=>x.especialidades_fornecedor?.nome).filter(Boolean).join(', ')||'Por definir'}</p><p><b>Zonas:</b> {(supplier.zones||[]).map(x=>x.concelho||x.distrito||x.pais).join(', ')||'Por definir'}</p></div>
+    <div><h3>Atuação</h3><p><b>Especialidades:</b> {(Array.isArray(supplier.specialties)?supplier.specialties:[]).map(x=>typeof x==='string'?x:x?.especialidades_fornecedor?.nome).filter(Boolean).join(', ')||'Por definir'}</p><p><b>Zonas:</b> {(Array.isArray(supplier.zones)?supplier.zones:[]).map(x=>typeof x==='string'?x:(x?.concelho||x?.distrito||x?.pais)).filter(Boolean).join(', ')||'Por definir'}</p></div>
    </div>
    <p className="muted" style={{marginTop:18}}>A conta está associada a este fornecedor. A receção de consultas só será permitida depois da validação administrativa e da ativação da licença, com pagamento confirmado.</p>
   </div>:<div className="panel" style={{padding:22,maxWidth:760}}>
