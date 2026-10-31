@@ -6,7 +6,7 @@ const BUCKET='ativus-documentos-tecnicos';
 const empty={empreendimento_id:'',ativo_id:'',componente_id:'',inspecao_id:'',patologia_id:'',trabalho_id:'',nome:'',categoria:'projeto',descricao:''};
 const categories=[['projeto','Projeto'],['desenho','Desenho / Peça desenhada'],['relatorio','Relatório'],['certificado','Certificado'],['manual','Manual técnico'],['fotografia','Fotografia'],['contrato','Contrato'],['outro','Outro']];
 export default function TechnicalDocuments(){
- const [projects,setProjects]=useState([]),[assets,setAssets]=useState([]),[components,setComponents]=useState([]),[rows,setRows]=useState([]);
+ const [projects,setProjects]=useState([]),[assets,setAssets]=useState([]),[components,setComponents]=useState([]),[inspections,setInspections]=useState([]),[pathologies,setPathologies]=useState([]),[works,setWorks]=useState([]),[rows,setRows]=useState([]);
  const [form,setForm]=useState(empty),[file,setFile]=useState(null),[loading,setLoading]=useState(true),[saving,setSaving]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState('');
  const load=useCallback(async()=>{
   if(!supabase){setError('Supabase não está configurado.');setLoading(false);return}
@@ -24,10 +24,10 @@ export default function TechnicalDocuments(){
  useEffect(()=>{load()},[load]);
  const loadInventory=async id=>{
   setForm(v=>({...v,empreendimento_id:id,ativo_id:'',componente_id:''}));
-  if(!id){setAssets([]);setComponents([]);return}
-  const [a,c]=await Promise.all([supabase.from('ativos').select('id,codigo,nome').eq('empreendimento_id',id).order('nome'),supabase.from('componentes').select('id,codigo,nome,ativo_id').eq('empreendimento_id',id).order('nome')]);
-  if(a.error||c.error){setError(a.error?.message||c.error?.message);return}
-  setAssets(a.data||[]);setComponents(c.data||[]);
+  if(!id){setAssets([]);setComponents([]);setInspections([]);setPathologies([]);setWorks([]);return}
+  const [a,c,i,p,w]=await Promise.all([supabase.from('ativos').select('id,codigo,nome').eq('empreendimento_id',id).order('nome'),supabase.from('componentes').select('id,codigo,nome,ativo_id').eq('empreendimento_id',id).order('nome'),supabase.from('inspecoes').select('id,codigo,tipo,data_inspecao').eq('empreendimento_id',id).order('data_inspecao',{ascending:false}),supabase.from('patologias').select('id,codigo,tipo,caracterizacao').eq('empreendimento_id',id).order('identificada_em',{ascending:false}),supabase.from('trabalhos').select('id,codigo,descricao,estado').eq('empreendimento_id',id).order('criado_em',{ascending:false})]);
+  const failure=[a,c,i,p,w].find(x=>x.error);if(failure){setError(failure.error.message);return}
+  setAssets(a.data||[]);setComponents(c.data||[]);setInspections(i.data||[]);setPathologies(p.data||[]);setWorks(w.data||[]);
  };
  const upload=async e=>{
   e.preventDefault();if(!file||!form.empreendimento_id||!form.nome.trim())return;
@@ -67,6 +67,9 @@ export default function TechnicalDocuments(){
     <label>Ativo (opcional)<select value={form.ativo_id} onChange={e=>setForm(v=>({...v,ativo_id:e.target.value,componente_id:''}))}><option value="">Não associado</option>{assets.map(a=><option key={a.id} value={a.id}>{a.codigo} · {a.nome}</option>)}</select></label>
     <label>Componente (opcional)<select value={form.componente_id} onChange={e=>setForm(v=>({...v,componente_id:e.target.value}))}><option value="">Não associado</option>{components.filter(c=>!form.ativo_id||c.ativo_id===form.ativo_id).map(c=><option key={c.id} value={c.id}>{c.codigo} · {c.nome}</option>)}</select></label>
     <label>Designação do documento *<input required maxLength={200} value={form.nome} onChange={e=>setForm(v=>({...v,nome:e.target.value}))} placeholder="Ex.: Projeto de estruturas"/></label>
+    <label>Inspeção associada (opcional)<select value={form.inspecao_id} onChange={e=>setForm(v=>({...v,inspecao_id:e.target.value}))}><option value="">Não associada</option>{inspections.map(x=><option key={x.id} value={x.id}>{x.codigo} · {x.tipo} · {x.data_inspecao}</option>)}</select></label>
+    <label>Patologia associada (opcional)<select value={form.patologia_id} onChange={e=>setForm(v=>({...v,patologia_id:e.target.value}))}><option value="">Não associada</option>{pathologies.map(x=><option key={x.id} value={x.id}>{x.codigo||'Sem código'} · {x.tipo||x.caracterizacao||'Patologia'}</option>)}</select></label>
+    <label>Ordem de trabalho associada (opcional)<select value={form.trabalho_id} onChange={e=>setForm(v=>({...v,trabalho_id:e.target.value}))}><option value="">Não associada</option>{works.map(x=><option key={x.id} value={x.id}>{x.codigo} · {x.descricao}</option>)}</select></label>
     <label>Ficheiro *<input required type="file" onChange={e=>setFile(e.target.files?.[0]||null)}/></label>
    </div>
    <label style={{display:'block',marginTop:12}}>Descrição / observações<textarea rows="2" value={form.descricao} onChange={e=>setForm(v=>({...v,descricao:e.target.value}))}/></label>
