@@ -174,8 +174,19 @@ export default function AtivusAI(){
  };
  const manageProcessingJob=async(id,action)=>{
   setError('');setMessage('');
-  try{const {error}=await supabase.rpc(action==='retry'?'ai_reagendar_tarefa_documento':'ai_cancelar_tarefa_documento',{p_tarefa_id:id});if(error)throw error;setMessage(action==='retry'?'Tarefa reagendada.':'Tarefa cancelada.');await loadSurveyData();}
-  catch(e){setError(e.message||'Não foi possível atualizar a tarefa.');}
+  try{
+   if(action==='retry'){
+    const job=processingJobs.find(x=>x.id===id);if(!job)throw new Error('Tarefa não encontrada.');
+    const {data:taskId,error:re}=await supabase.rpc('ai_reagendar_tarefa_documento',{p_tarefa_id:id});if(re)throw re;
+    const {data,error}=await supabase.functions.invoke('ativus-ai-inventory-analyzer',{body:{levantamento_id:job.levantamento_id,tarefa_id:taskId}});
+    if(error)throw error;if(!data?.ok)throw new Error(data?.error||'A tarefa não foi concluída.');
+    setMessage('Nova tentativa concluída. '+(data.propostas||0)+' proposta(s) identificada(s).');
+   }else{
+    const {error}=await supabase.rpc('ai_cancelar_tarefa_documento',{p_tarefa_id:id});if(error)throw error;
+    setMessage('Tarefa cancelada.');
+   }
+   await loadSurveyData();
+  }catch(e){setError(e.message||'Não foi possível atualizar a tarefa.');}
  };
  const analyzeSurvey=async(id)=>{
   setAnalyzing(id);setError('');setMessage('A IA está a ler os documentos e a preparar propostas de inventário…');
