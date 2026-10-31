@@ -28,6 +28,13 @@ const topics=[
  ]}
 ];
 
+export class HelpCenterBoundary extends React.Component {
+ constructor(props){super(props);this.state={failed:false,error:''}}
+ static getDerivedStateFromError(error){return {failed:true,error:error?.message||'Erro inesperado ao abrir o Centro de Ajuda.'}}
+ componentDidCatch(error,info){console.error('Falha no Centro de Ajuda:',error,info)}
+ render(){if(this.state.failed)return <section className="content"><div className="panel" role="alert" style={{padding:24}}><h2>Não foi possível abrir o Centro de Ajuda</h2><p>{this.state.error}</p><button className="primary" onClick={()=>this.setState({failed:false,error:''})}>Tentar novamente</button></div></section>;return this.props.children}
+}
+
 export function HelpCenter(){
  const [query,setQuery]=useState('');
  const [open,setOpen]=useState('Como funciona a organização dos dados?');
