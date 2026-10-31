@@ -2,7 +2,7 @@ import React,{useCallback,useEffect,useState} from 'react';
 import {supabase} from './lib/supabase.js';
 import {Upload,RefreshCw,FileText,Download,Trash2} from 'lucide-react';
 
-const BUCKET='ativus-ai-documentos';
+const BUCKET='ativus-documentos-tecnicos';
 const empty={empreendimento_id:'',ativo_id:'',componente_id:'',inspecao_id:'',patologia_id:'',trabalho_id:'',nome:'',categoria:'projeto',descricao:''};
 const categories=[['projeto','Projeto'],['desenho','Desenho / Peça desenhada'],['relatorio','Relatório'],['certificado','Certificado'],['manual','Manual técnico'],['fotografia','Fotografia'],['contrato','Contrato'],['outro','Outro']];
 export default function TechnicalDocuments(){
