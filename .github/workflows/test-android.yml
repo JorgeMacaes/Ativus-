@@ -30,7 +30,7 @@ jobs:
       - name: Instalar dependências
         run: npm install --legacy-peer-deps
       - name: Compilar aplicação web
-        run: npm run build
+        run: npm run build -- --base=./
       - name: Adicionar plataforma Android
         run: npx cap add android
       - name: Sincronizar Capacitor
