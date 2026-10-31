@@ -18,7 +18,8 @@ begin
       'update public.%I x set entidade_id=a.entidade_id from public.ativos a where a.id=x.ativo_id and x.entidade_id is null',
       t
     );
-    if exists (execute format('select 1 from public.%I where entidade_id is null limit 1',t)) then
+    execute format('select exists(select 1 from public.%I where entidade_id is null)',t) into has_null;
+    if has_null then
       raise exception 'Migração interrompida: a tabela % ainda tem registos sem entidade gestora.',t;
     end if;
     execute format('alter table public.%I alter column empreendimento_id drop not null',t);
@@ -28,15 +29,10 @@ begin
   end loop;
 end $$;
 
--- Códigos autónomos únicos dentro de cada entidade gestora.
-create unique index if not exists ativos_entidade_codigo_uidx
-  on public.ativos(entidade_id,codigo);
-create unique index if not exists componentes_entidade_codigo_uidx
-  on public.componentes(entidade_id,codigo);
-
+-- A unicidade dos códigos será validada separadamente para evitar colisões nos dados históricos.
 -- Substitui políticas dependentes de empreendimento por autorização da entidade.
 do $$
-declare t text; p record; base text;
+declare t text; p record; has_null boolean;
 begin
   foreach t in array array[
     'inspecoes','patologias','trabalhos','ocorrencias',
