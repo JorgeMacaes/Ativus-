@@ -1,0 +1,48 @@
+name: Teste Android Seven M Ativus (sem publicação)
+on:
+  push:
+    branches:
+      - 'testes/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Obter código
+        uses: actions/checkout@v4
+      - name: Preparar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Preparar Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Preparar Android SDK
+        env:
+          ANDROID_HOME: /usr/local/lib/android/sdk
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses >/dev/null || true
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+      - name: Instalar dependências
+        run: npm install --legacy-peer-deps
+      - name: Compilar aplicação web
+        run: npm run build
+      - name: Adicionar plataforma Android
+        run: npx cap add android
+      - name: Sincronizar Capacitor
+        run: npx cap sync android
+      - name: Gerar APK de depuração
+        run: |
+          chmod +x android/gradlew
+          cd android
+          ./gradlew assembleDebug --no-daemon
+      - name: Guardar APK como artefacto de teste
+        uses: actions/upload-artifact@v4
+        with:
+          name: seven-m-ativus-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
