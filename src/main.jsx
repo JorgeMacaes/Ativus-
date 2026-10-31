@@ -12,7 +12,7 @@ import PathologiesLive from './PathologiesLive.jsx';
 import PublicOccurrence from './PublicOccurrence.jsx';
 import TechnicalDocuments from './TechnicalDocuments.jsx';
 import Monitoring from './Monitoring.jsx';
-import {HelpCenter,HelpDesk,CRMActivityPanel} from './HelpCenter.jsx';
+import {HelpCenter,HelpCenterBoundary,HelpDesk,CRMActivityPanel} from './HelpCenter.jsx';
 
 const seedProjects=[
  {id:'EMP-0001',name:'Edifício Rua Central',location:'Porto',type:'Edifício multifamiliar',status:'Em curso',description:'Empreendimento de demonstração'}
@@ -90,7 +90,7 @@ function App(){
     </form>
    </div>}
    {view==='dashboard'&&<Dashboard projects={projects} assets={assets} inspections={inspections} pathologies={pathologies} onAssets={()=>go('assets')}/>}
-   {view==='help'&&<HelpCenter/>}
+   {view==='help'&&<HelpCenterBoundary><HelpCenter/></HelpCenterBoundary>}
    {view==='helpdesk'&&<HelpDesk/>}
    {view==='assets'&&<Assets assets={filtered} query={query} setQuery={setQuery} onNew={addAsset} onOpen={id=>{setSelected(id);setView('asset')}}/>}
    {view==='asset'&&current&&<AssetDetail asset={current} inspections={inspections} pathologies={pathologies} onBack={()=>go('assets')} onNewInspection={()=>addInspection(current.id)} onNewPathology={addPathology}/>}
