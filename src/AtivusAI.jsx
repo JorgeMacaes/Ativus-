@@ -18,7 +18,7 @@ const safeName=name=>name.normalize('NFKD').replace(/[\u0300-\u036f]/g,'').repla
 const formatSize=n=>n<1024*1024?(n/1024).toFixed(0)+' KB':(n/1024/1024).toFixed(1)+' MB';
 export default function AtivusAI(){
  const [projects,setProjects]=useState([]),[selected,setSelected]=useState('');
- const [surveys,setSurveys]=useState([]),[documents,setDocuments]=useState([]);
+ const [surveys,setSurveys]=useState([]),[documents,setDocuments]=useState([]),[proposals,setProposals]=useState([]),[analyzing,setAnalyzing]=useState('');
  const [title,setTitle]=useState('Novo levantamento técnico'),[description,setDescription]=useState('');
  const [files,setFiles]=useState([]),[loading,setLoading]=useState(true),[saving,setSaving]=useState(false);
  const [error,setError]=useState(''),[message,setMessage]=useState('');
@@ -51,10 +51,13 @@ export default function AtivusAI(){
   if(surveyError){setError(surveyError.message);return;}
   setSurveys(surveyRows||[]);
   const ids=(surveyRows||[]).map(x=>x.id);
-  if(!ids.length){setDocuments([]);return;}
+  if(!ids.length){setDocuments([]);setProposals([]);return;}
   const {data:docRows,error:docError}=await supabase.from('ai_documentos').select('id,levantamento_id,nome_ficheiro,mime_type,tamanho_bytes,estado,criado_em,caminho_storage').in('levantamento_id',ids).order('criado_em',{ascending:false});
   if(docError){setError(docError.message);return;}
   setDocuments(docRows||[]);
+  const {data:proposalRows,error:proposalError}=await supabase.from('ai_elementos_propostos').select('id,levantamento_id,tipo_elemento,dados_propostos,localizacao_proposta,confianca,estado_revisao,evidencia').in('levantamento_id',ids).order('criado_em',{ascending:false});
+  if(proposalError){setError(proposalError.message);return;}
+  setProposals(proposalRows||[]);
  },[selected]);
  useEffect(()=>{load();},[load]);
  useEffect(()=>{loadSurveyData();},[loadSurveyData]);
@@ -69,6 +72,12 @@ export default function AtivusAI(){
   });
   setFiles(old=>[...old,...accepted.filter(f=>!old.some(x=>x.name===f.name&&x.size===f.size))]);
   e.target.value='';
+ };
+ const analyzeSurvey=async(id)=>{
+  setAnalyzing(id);setError('');setMessage('A IA está a ler os documentos e a preparar propostas de inventário…');
+  try{const {data,error}=await supabase.functions.invoke('ativus-ai-inventory-analyzer',{body:{levantamento_id:id}});if(error)throw error;if(!data?.ok)throw new Error(data?.error||'A análise não foi concluída.');setMessage('Análise concluída: '+data.propostas+' proposta(s) de inventário. Revê os elementos antes de os validar.');await loadSurveyData();}
+  catch(e){setError(e?.message||'Não foi possível analisar os documentos.');setMessage('');}
+  finally{setAnalyzing('');}
  };
  const createSurveyAndUpload=async()=>{
   if(!selected) return setError('Seleciona primeiro um empreendimento.');
@@ -135,11 +144,11 @@ export default function AtivusAI(){
    <div className="panel" style={{padding:20}}>
     <div style={{display:'flex',alignItems:'center',gap:10}}><FolderOpen size={20}/><h3 style={{margin:0}}>Levantamentos e documentos</h3></div>
     {!surveys.length?<p className="empty">Ainda não existem levantamentos documentais neste empreendimento.</p>:surveys.map(s=><div key={s.id} style={{padding:'14px 0',borderBottom:'1px solid #edf1f5'}}>
-     <div style={{display:'flex',justifyContent:'space-between',gap:12,flexWrap:'wrap'}}><div><strong>{s.titulo}</strong><small className="muted" style={{display:'block'}}>{new Date(s.criado_em).toLocaleString('pt-PT')} · {s.estado}</small></div><span className="muted"><Clock3 size={14}/> {documents.filter(d=>d.levantamento_id===s.id).length} documento(s)</span></div>
-     {documents.filter(d=>d.levantamento_id===s.id).map(d=><div key={d.id} style={{display:'flex',justifyContent:'space-between',gap:10,padding:'8px 0 0 12px',fontSize:13}}><span><FileText size={14}/> {d.nome_ficheiro}</span><span className="muted">{formatSize(d.tamanho_bytes)} · {d.estado}</span></div>)}
+     <div style={{display:'flex',justifyContent:'space-between',gap:12,flexWrap:'wrap'}}><div><strong>{s.titulo}</strong><small className="muted" style={{display:'block'}}>{new Date(s.criado_em).toLocaleString('pt-PT')} · {s.estado}</small></div><span className="muted"><Clock3 size={14}/> {documents.filter(d=>d.levantamento_id===s.id).length} documento(s)</span><button className="primary" disabled={!!analyzing||!documents.some(d=>d.levantamento_id===s.id)} onClick={()=>analyzeSurvey(s.id)}>{analyzing===s.id?'A analisar…':'Analisar com IA'}</button></div>
+     {proposals.filter(p=>p.levantamento_id===s.id).length>0&&<div style={{marginTop:12,padding:12,background:'#f4f8fb',borderRadius:8}}><strong>Propostas de inventário para validação ({proposals.filter(p=>p.levantamento_id===s.id).length})</strong>{proposals.filter(p=>p.levantamento_id===s.id).map(p=><div key={p.id} style={{padding:'8px 0',borderBottom:'1px solid #dce6ee'}}><strong>{p.dados_propostos?.nome||p.tipo_elemento}</strong><small className="muted" style={{display:'block'}}>{p.tipo_elemento} · {p.localizacao_proposta||'Localização não identificada'} · confiança {Math.round((p.confianca||0)*100)}% · {p.estado_revisao}</small>{p.dados_propostos?.descricao&&<small>{p.dados_propostos.descricao}</small>}</div>)}</div>}{documents.filter(d=>d.levantamento_id===s.id).map(d=><div key={d.id} style={{display:'flex',justifyContent:'space-between',gap:10,padding:'8px 0 0 12px',fontSize:13}}><span><FileText size={14}/> {d.nome_ficheiro}</span><span className="muted">{formatSize(d.tamanho_bytes)} · {d.estado}</span></div>)}
     </div>)}
    </div>
   </>}
-  <p className="muted" style={{marginTop:14}}><HardDrive size={14}/> Os ficheiros ficam privados e associados ao empreendimento. Nesta fase são apenas armazenados e catalogados: a leitura automática, conversão CAD/BIM e análise por IA ainda não estão implementadas.</p>
+  <p className="muted" style={{marginTop:14}}><HardDrive size={14}/> Os ficheiros ficam privados e associados ao empreendimento. A análise automática já está disponível para PDF e imagens. Os restantes formatos são guardados e aguardam os respetivos módulos de conversão e interpretação CAD/BIM.</p>
  </section>;
 }
