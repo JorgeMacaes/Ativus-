@@ -49,12 +49,19 @@ function App(){
  const [relations,setRelations]=useState(()=>load('ativus_relations',seedRelations));
  const [view,setView]=useState('dashboard'),[selected,setSelected]=useState(null),[selectedProject,setSelectedProject]=useState(null),[menu,setMenu]=useState(false),[query,setQuery]=useState('');
  const [paramTab,setParamTab]=useState('relations');
+ const [navGroupsOpen,setNavGroupsOpen]=useState({geral:true,ativos:true,operacao:true,negocio:true,config:true});
  const [projectFormOpen,setProjectFormOpen]=useState(false);
  const [projectForm,setProjectForm]=useState({name:'',location:'',type:'',description:''});
  const [projectError,setProjectError]=useState('');
  const filtered=useMemo(()=>assets.filter(a=>(a.name+' '+a.location+' '+a.id).toLowerCase().includes(query.toLowerCase())),[assets,query]);
  const current=selected?assets.find(a=>a.id===selected):null;
- const nav=[['dashboard','Dashboard',LayoutDashboard],['help','Centro de Ajuda',BookOpen],['helpdesk','Ativus Help Desk',Headset],['projects','Empreendimentos',Building2],['assets','Ativos / Inventário',Building2],['inspections','Inspeções',ClipboardCheck],['occurrences','Ocorrências',ClipboardList],['pathologies','Patologias',AlertTriangle],['agenda','Agenda',CalendarDays],['monitoring','Sistemas de Monitorização',Activity],['documents','Documentação',FileText],['ativus-ai','Ativus AI · Inventário Inteligente',Brain],['crm','CRM · Clientes e Contactos',ContactRound],['suppliers','Fornecedores e Licenças',Truck],['settings','Parametrização',Settings]];
+ const navGroups=[
+  {id:'geral',title:'GERAL',items:[['dashboard','Dashboard',LayoutDashboard],['help','Centro de Ajuda',BookOpen]]},
+  {id:'ativos',title:'GESTÃO DE ATIVOS',items:[['projects','Empreendimentos',Building2],['assets','Ativos / Inventário',Boxes],['inspections','Inspeções',ClipboardCheck],['occurrences','Ocorrências',ClipboardList],['pathologies','Patologias',AlertTriangle],['agenda','Agenda',CalendarDays],['monitoring','Sistemas de Monitorização',Activity]]},
+  {id:'operacao',title:'OPERAÇÕES E SUPORTE',items:[['helpdesk','Ativus Help Desk',Headset],['documents','Documentação',FileText],['suppliers','Fornecedores e Licenças',Truck]]},
+  {id:'negocio',title:'GESTÃO COMERCIAL E INTELIGÊNCIA',items:[['crm','CRM · Clientes e Contactos',ContactRound],['ativus-ai','Ativus AI · Inventário Inteligente',Brain]]},
+  {id:'config',title:'CONFIGURAÇÃO',items:[['settings','Parametrização',Settings]]}
+ ];
  const go=id=>{setView(id);setMenu(false);if(id!=='asset')setSelected(null);if(id!=='project')setSelectedProject(null)};
  React.useEffect(()=>{const handler=e=>go(e.detail);window.addEventListener('ativus:navigate',handler);return()=>window.removeEventListener('ativus:navigate',handler)},[]);
  const addAsset=()=>{const name=window.prompt('Nome do ativo:');if(!name||!name.trim())return;const n=Math.max(0,...assets.map(a=>Number(String(a.id).replace(/\\D/g,''))||0))+1,a={id:'ATV-'+String(n).padStart(4,'0'),name:name.trim(),type:'Edifício residencial',location:'Por definir',status:'Ativo',ec:0,maintenance:'Bom',components:0,pathologies:0};const next=[a,...assets];setAssets(save('ativus_assets',next));setSelected(a.id);setView('asset')};
@@ -62,7 +69,7 @@ function App(){
  const addPathology=()=>{const n=pathologies.length+1,p={id:'PAT-'+String(n).padStart(4,'0'),asset:current?.id||assets[0]?.id||'ATV-0001',subcomponent:'Novo subcomponente',material:materials[0]||'Betão',type:'Fissuração',characteristic:'Diagonal',cause:'',effect:'',work:'',unit:'m',status:'Identificada',ec:3};setPathologies(save('ativus_pathologies',[p,...pathologies]));setView('pathologies')};
  return <div className="app">
   <aside className={menu?'sidebar open':'sidebar'}><div className="brand"><img className="brand-logo" src={import.meta.env.BASE_URL+'seven-m-ativus-white.svg'} alt="Seven M Ativus"/><button className="close" onClick={()=>setMenu(false)}><X size={20}/></button></div>
-   <nav>{nav.map(([id,label,Icon])=><button className={view===id?'nav active':'nav'} key={id} onClick={()=>go(id)}><Icon size={19}/><span>{label}</span></button>)}</nav>
+   <nav>{navGroups.map(group=><section className="nav-group" key={group.id}><button type="button" className="nav-group-title" aria-expanded={!!navGroupsOpen[group.id]} onClick={()=>setNavGroupsOpen(v=>({...v,[group.id]:!v[group.id]}))}><span>{group.title}</span><span className="nav-group-chevron">{navGroupsOpen[group.id]?'−':'+'}</span></button>{navGroupsOpen[group.id]&&group.items.map(([id,label,Icon])=><button className={view===id?'nav active':'nav'} key={id} onClick={()=>go(id)}><Icon size={18}/><span>{label}</span></button>)}</section>)}</nav>
    <div className="sidefoot">MVP 0.2<br/><small>Inventário · inspeção · patologias · parametrização</small></div>
   </aside>
   <main className="main"><header><button className="hamb" onClick={()=>setMenu(true)}><Menu/></button><div className="page-heading"><img className="header-brand-logo" src={import.meta.env.BASE_URL+'seven-m-ativus.svg'} alt="Seven M Ativus"/><h1>{view==='dashboard'?'Dashboard':view==='projects'?'Empreendimentos':view==='project'?selectedProject?.name||'Empreendimento':view==='assets'?'Ativos / Inventário':view==='asset'?current?.name||'Ativo':nav.find(x=>x[0]===view)?.[1]||'Ativus'}</h1></div><div className="header-actions"><div className={backendConfigured ? "sync backend-ready" : "sync"}>{backendConfigured ? "● Backend configurado" : "● Demonstração local"}</div><div className="user">JM</div></div></header>
