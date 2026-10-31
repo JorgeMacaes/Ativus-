@@ -42,3 +42,56 @@
 .session-dropdown-email{display:block;padding:7px 8px 10px;color:#6d8291;font-size:10px;overflow-wrap:anywhere;border-bottom:1px solid #edf1f4}
 .session-dropdown button{width:100%;margin-top:7px;border:0;border-radius:8px;background:#f1f5f8;color:#34536a;padding:9px 10px;text-align:left;font-size:12px;font-weight:700;cursor:pointer}
 @media(max-width:480px){.session-menu{top:8px;right:9px}.session-trigger{gap:6px;padding:3px 7px 3px 4px}.session-avatar{width:25px;height:25px;flex-basis:25px}.session-email{max-width:105px;font-size:10px}.session-dropdown{top:38px}}
+
+/* Centro de Ajuda e Ativus Help Desk */
+.help-hero{display:flex;align-items:center;gap:18px;padding:26px 28px;border-radius:18px;background:linear-gradient(115deg,#183f3a,#2e6558);color:#fff;box-shadow:0 12px 28px rgba(23,62,56,.13)}
+.help-hero-icon{width:58px;height:58px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.25);border-radius:16px;background:rgba(255,255,255,.1);flex-shrink:0}
+.help-kicker{font-size:9px;letter-spacing:1.8px;font-weight:800;color:#b8d8cd}
+.help-hero h2,.helpdesk-heading h2{font-size:27px;margin:6px 0;color:inherit}
+.help-hero p,.helpdesk-heading p{margin:0;color:rgba(255,255,255,.78);font-size:13px}
+.help-search{display:flex;align-items:center;gap:11px;margin:18px 0;padding:0 16px;height:52px;background:#fff;border:1px solid #dfe7e8;border-radius:12px;color:#688394;box-shadow:0 4px 16px rgba(20,50,70,.04)}
+.help-search input{border:0;outline:0;flex:1;min-width:0;font-size:13px;color:#243e4f}
+.help-layout{display:grid;grid-template-columns:225px minmax(0,1fr);gap:18px;align-items:start}
+.help-categories,.help-articles,.help-group{background:#fff;border:1px solid #e2e9eb;border-radius:13px}
+.help-categories{padding:18px;position:sticky;top:96px}
+.help-categories h3,.help-group h3{margin:0 0 14px;color:#25465a;font-size:14px}
+.help-category{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid #edf1f2;font-size:11px;color:#627987}
+.help-category span{width:24px;height:24px;display:grid;place-items:center;border-radius:7px;background:#edf4f1;color:#3b7667;font-size:9px;font-weight:800}
+.help-articles{padding:14px}
+.help-group{border:0;border-radius:0;padding:8px 4px 12px}
+.help-group+ .help-group{border-top:1px solid #e9eef0}
+.help-group h3{padding:5px 7px;margin-bottom:8px}
+.help-article{border:1px solid #e8edef;border-radius:9px;margin:7px 0;overflow:hidden}
+.help-article>button{width:100%;border:0;background:#fff;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 14px;color:#29485c;text-align:left;font-size:12px;font-weight:700;cursor:pointer}
+.help-article>button svg{flex-shrink:0;color:#78909e;transition:transform .15s}
+.help-article>button[aria-expanded=true] svg{transform:rotate(180deg)}
+.help-article p{margin:0;padding:0 14px 15px;color:#687e8c;font-size:12px;line-height:1.65}
+.help-empty{padding:30px;text-align:center;color:#8799a5;font-size:12px}
+.help-bottom{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-top:17px;padding:16px 18px;border:1px solid #dce8e4;border-radius:12px;background:#f4f8f6}
+.help-bottom>div{display:flex;align-items:center;gap:12px;color:#397363}
+.help-bottom strong,.help-bottom span{display:block}
+.help-bottom strong{font-size:12px;color:#2d554c}
+.help-bottom span{font-size:10px;color:#758d85;margin-top:3px}
+.helpdesk-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:22px 24px;border-radius:16px;background:linear-gradient(115deg,#183f3a,#2e6558);color:#fff;margin-bottom:18px}
+.helpdesk-grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:16px;align-items:start}
+.ticket-form,.ticket-list{padding:20px}
+.ticket-form .panelhead h3,.ticket-list .panelhead h3{display:flex;align-items:center;gap:7px}
+.ticket-form label{display:block;margin:14px 0 0;color:#365568;font-size:11px;font-weight:700}
+.ticket-form input,.ticket-form select,.ticket-form textarea{display:block;width:100%;box-sizing:border-box;margin-top:6px;padding:11px 12px;border:1px solid #d7e2e7;border-radius:8px;background:#fff;color:#28485c;font:inherit;font-size:12px}
+.ticket-form textarea{resize:vertical;line-height:1.5}
+.ticket-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ticket-form>.primary{margin-top:16px}
+.ticket-success,.ticket-error{padding:10px 12px;border-radius:8px;font-size:11px;line-height:1.5}
+.ticket-success{background:#edf7f0;color:#276443}.ticket-error{background:#fff0ee;color:#a23e35}
+.help-alert{display:flex;gap:9px;align-items:center;margin-top:15px;padding:12px;border-radius:9px;background:#fff7e8;color:#8a651c;font-size:11px;line-height:1.5}
+.ticket-row{padding:14px 2px;border-bottom:1px solid #edf1f2}
+.ticket-row:last-child{border-bottom:0}
+.ticket-row-top{display:flex;align-items:flex-start;justify-content:space-between;gap:9px}
+.ticket-row strong{font-size:12px;color:#29485c}
+.ticket-row p{margin:6px 0 3px;color:#718694;font-size:10px}
+.ticket-row small{color:#8799a5;font-size:9px;text-transform:capitalize}
+.ticket-status{white-space:nowrap;padding:4px 7px;border-radius:999px;background:#edf3f6;color:#536e7d;font-size:9px;font-weight:800}
+.status-novo{background:#eaf3f8;color:#2b6584}.status-em_analise,.status-aguarda_utilizador{background:#fff4df;color:#946c1a}.status-resolvido,.status-encerrado{background:#eaf6ee;color:#31734b}
+.helpdesk-note{display:flex;align-items:center;gap:8px;color:#728794;font-size:10px;line-height:1.5;margin-top:15px}
+@media(max-width:850px){.help-layout,.helpdesk-grid{grid-template-columns:1fr}.help-categories{position:static;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 12px}.help-categories h3{grid-column:1/-1}.help-category{font-size:10px}.help-bottom{align-items:flex-start;flex-direction:column}}
+@media(max-width:480px){.help-hero{padding:19px;gap:12px}.help-hero-icon{width:46px;height:46px}.help-hero h2,.helpdesk-heading h2{font-size:22px}.helpdesk-heading{align-items:flex-start;flex-direction:column;padding:18px}.ticket-form,.ticket-list{padding:15px}.ticket-fields{grid-template-columns:1fr}.help-categories{grid-template-columns:1fr}}
