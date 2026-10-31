@@ -34,7 +34,7 @@ export default function Inspections(){
  const counts=useMemo(()=>({total:coverage.length,done:coverage.filter(x=>x.estado_cobertura!=='pendente').length,pending:coverage.filter(x=>x.estado_cobertura==='pendente').length,exceptions:coverage.filter(x=>['inacessivel','nao_aplicavel'].includes(x.estado_cobertura)).length}),[coverage]);
  const ecValues=records.map(x=>x.classe_estado_conservacao).filter(x=>x!==null&&x!==undefined);
  const ecMax=ecValues.length?Math.max(...ecValues):null,ecMean=ecValues.length?(ecValues.reduce((a,b)=>a+b,0)/ecValues.length).toFixed(1):'—';
- const openNew=async()=>{setForm({...blankForm(),empreendimento_id:enterprises.length===1?enterprises[0].id:''});setAssets([]);setFormOpen(true);setError('');setMessage('')};
+ const openNew=async()=>{const enterpriseId=enterprises.length===1?enterprises[0].id:'';setForm({...blankForm(),empreendimento_id:enterpriseId});setAssets([]);setFormOpen(true);setError('');setMessage('');if(enterpriseId){try{await loadInventory(enterpriseId)}catch(e){setError(e?.message||'Não foi possível carregar os ativos.')}}};
  const loadInventory=async enterpriseId=>{
   if(!enterpriseId){setAssets([]);return}
   const {data,error:e}=await supabase.from('ativos').select('id,codigo,nome,tipo,localizacao,empreendimento_id').eq('empreendimento_id',enterpriseId).order('nome');
