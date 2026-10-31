@@ -13,9 +13,10 @@ export default function PathologiesLive(){
    const {data:u,error:ue}=await supabase.auth.getUser();if(ue)throw ue;if(!u?.user)throw new Error('Inicia sessão para consultar as patologias.');
    const {data:m,error:me}=await supabase.from('membros_entidade').select('entidade_id').eq('utilizador_id',u.user.id).eq('ativo',true);if(me)throw me;
    const ids=[...new Set((m||[]).map(x=>x.entidade_id))];if(!ids.length)throw new Error('A conta não tem entidades ativas associadas.');
-   const [e,a,c,p]=await Promise.all([
+   const [e,g,a,c,p]=await Promise.all([
     supabase.from('empreendimentos').select('id,nome,codigo,entidade_id').in('entidade_id',ids).order('nome'),
-    supabase.from('entidades').select('id,nome').in('id',ids).order('nome'),\n    supabase.from('ativos').select('id,entidade_id,empreendimento_id,codigo,nome').order('nome'),
+    supabase.from('entidades').select('id,nome').in('id',ids).order('nome'),
+    supabase.from('ativos').select('id,entidade_id,empreendimento_id,codigo,nome').order('nome'),
     supabase.from('componentes').select('id,entidade_id,empreendimento_id,ativo_id,codigo,nome').order('nome'),
     supabase.from('patologias').select('*').order('identificada_em',{ascending:false})
    ]);
