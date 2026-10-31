@@ -113,3 +113,13 @@
 .ecbartrack{box-shadow:inset -4px 0 0 rgba(24,54,72,.045),0 3px 0 rgba(24,54,72,.06)}
 .ecbarfill{box-shadow:inset -4px 0 0 rgba(20,60,60,.10)}
 @media(max-width:480px){.auth-card{padding:24px!important}.auth-screen{padding:16px!important}}
+
+
+/* Corrige a sobreposição do menu de utilizador no ecrã Android */
+@media(max-width:700px){
+  .app{padding-top:52px}
+  .session-menu{position:fixed;top:7px;right:12px;z-index:1100}
+  .session-trigger{max-width:calc(100vw - 24px);box-shadow:0 2px 10px rgba(20,50,70,.10)}
+  .session-email{max-width:min(42vw,190px)}
+  .main header{top:52px}
+}
