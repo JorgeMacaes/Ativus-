@@ -5,6 +5,7 @@ import './styles.css';
 import { backendConfigured, supabase } from './lib/supabase.js';
 import CRMCompanies from './CRMCompanies.jsx';
 import AtivusProjects from './AtivusProjects.jsx';
+import AssetsLive from './AssetsLive.jsx';
 import AtivusAI from './AtivusAI.jsx';
 import LiveInspections from './Inspections.jsx';
 import Occurrences from './Occurrences.jsx';
@@ -57,7 +58,7 @@ function App(){
  const current=selected?assets.find(a=>a.id===selected):null;
  const navGroups=[
   {id:'geral',title:'GERAL',items:[['dashboard','Dashboard',LayoutDashboard],['help','Centro de Ajuda',BookOpen]]},
-  {id:'ativos',title:'GESTÃO DE ATIVOS',items:[['projects','Empreendimentos',Building2],['assets','Ativos / Inventário',Boxes],['inspections','Inspeções',ClipboardCheck],['occurrences','Ocorrências',ClipboardList],['pathologies','Patologias',AlertTriangle],['agenda','Agenda',CalendarDays],['monitoring','Sistemas de Monitorização',Activity]]},
+  {id:'ativos',title:'GESTÃO DE ATIVOS',items:[['assets','Ativos / Inventário',Boxes],['projects','Agrupamentos (opcional)',Building2],['inspections','Inspeções',ClipboardCheck],['occurrences','Ocorrências',ClipboardList],['pathologies','Patologias',AlertTriangle],['agenda','Agenda',CalendarDays],['monitoring','Sistemas de Monitorização',Activity]]},
   {id:'operacao',title:'OPERAÇÕES E SUPORTE',items:[['helpdesk','Ativus Help Desk',Headset],['documents','Documentação',FileText],['suppliers','Fornecedores e Licenças',Truck]]},
   {id:'negocio',title:'GESTÃO COMERCIAL E INTELIGÊNCIA',items:[['crm','CRM · Clientes e Contactos',ContactRound],['ativus-ai','Ativus AI · Inventário Inteligente',Brain]]},
   {id:'config',title:'CONFIGURAÇÃO',items:[['settings','Parametrização',Settings]]}
@@ -72,7 +73,7 @@ function App(){
    <nav>{navGroups.map(group=><section className="nav-group" key={group.id}><button type="button" className="nav-group-title" aria-expanded={!!navGroupsOpen[group.id]} onClick={()=>setNavGroupsOpen(v=>({...v,[group.id]:!v[group.id]}))}><span>{group.title}</span><span className="nav-group-chevron">{navGroupsOpen[group.id]?'−':'+'}</span></button>{navGroupsOpen[group.id]&&group.items.map(([id,label,Icon])=><button className={view===id?'nav active':'nav'} key={id} onClick={()=>go(id)}><Icon size={18}/><span>{label}</span></button>)}</section>)}</nav>
    <div className="sidefoot">MVP 0.2<br/><small>Inventário · inspeção · patologias · parametrização</small></div>
   </aside>
-  <main className="main"><header><button className="hamb" onClick={()=>setMenu(true)}><Menu/></button><div className="page-heading"><span className="header-brand-wordmark">Ativus</span><h1>{view==='dashboard'?'Dashboard':view==='projects'?'Empreendimentos':view==='project'?selectedProject?.name||'Empreendimento':view==='assets'?'Ativos / Inventário':view==='asset'?current?.name||'Ativo':nav.find(x=>x[0]===view)?.[1]||'Ativus'}</h1></div><div className="header-actions"><div className={backendConfigured ? "sync backend-ready" : "sync"}>{backendConfigured ? "● Backend configurado" : "● Demonstração local"}</div></div></header>
+  <main className="main"><header><button className="hamb" onClick={()=>setMenu(true)}><Menu/></button><div className="page-heading"><span className="header-brand-wordmark">Ativus</span><h1>{view==='dashboard'?'Dashboard':view==='projects'?'Agrupamentos (opcional)':view==='project'?selectedProject?.name||'Empreendimento':view==='assets'?'Ativos / Inventário':view==='asset'?current?.name||'Ativo':nav.find(x=>x[0]===view)?.[1]||'Ativus'}</h1></div><div className="header-actions"><div className={backendConfigured ? "sync backend-ready" : "sync"}>{backendConfigured ? "● Backend configurado" : "● Demonstração local"}</div></div></header>
    {view==='crm'&&<CRM />}
    {view==='ativus-ai'&&<AtivusAI />}
    {view==='suppliers'&&<Suppliers />}
@@ -92,7 +93,7 @@ function App(){
    {view==='dashboard'&&<Dashboard projects={projects} assets={assets} inspections={inspections} pathologies={pathologies} onAssets={()=>go('assets')}/>}
    {view==='help'&&<HelpCenterBoundary><HelpCenter/></HelpCenterBoundary>}
    {view==='helpdesk'&&<HelpDesk/>}
-   {view==='assets'&&<Assets assets={filtered} query={query} setQuery={setQuery} onNew={addAsset} onOpen={id=>{setSelected(id);setView('asset')}}/>}
+   {view==='assets'&&<AssetsLive/>}
    {view==='asset'&&current&&<AssetDetail asset={current} inspections={inspections} pathologies={pathologies} onBack={()=>go('assets')} onNewInspection={()=>addInspection(current.id)} onNewPathology={addPathology}/>}
    {view==='inspections'&&<LiveInspections/>}
    {view==='occurrences'&&<Occurrences/>}
