@@ -85,6 +85,8 @@ export default function AtivusAI(){
  const [planElement,setPlanElement]=useState({plano_id:'',ativo_id:'',componente_id:'',instrucoes:''});
  const [ruleElement,setRuleElement]=useState({ativo_id:'',componente_id:''});
  const [teamMembers,setTeamMembers]=useState([]);
+ const [inviteDraft,setInviteDraft]=useState({email:'',perfil:'tecnico'});
+ const [inviteBusy,setInviteBusy]=useState(false);
  const [executionHistory,setExecutionHistory]=useState([]);
  const [workAuditHistory,setWorkAuditHistory]=useState([]);
  const [inspectionRules,setInspectionRules]=useState([]);
@@ -246,6 +248,17 @@ export default function AtivusAI(){
 
   <section className="panel" style={{padding:20,marginTop:18}}>
    <div className="toolbar"><div><h3 style={{margin:0}}>Manutenção e Planeamento Operacional</h3><p className="muted">Ordens de trabalho, calendário preventivo, equipas, orçamento e indicadores.</p></div><button className="secondary" onClick={loadOperationalData} disabled={operationalLoading}>{operationalLoading?'A atualizar…':'Atualizar painel'}</button></div>
+   <div style={{padding:14,border:'1px solid #dce6ee',borderRadius:10,margin:'14px 0'}}>
+    <h4 style={{marginTop:0}}>Equipa e acessos</h4>
+    <p className="muted">Membros ativos associados à entidade do empreendimento. A atribuição de perfis é validada no servidor.</p>
+    {teamMembers.length?<div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(190px,1fr))',gap:7,marginBottom:12}}>{teamMembers.map(m=><div key={m.utilizador_id} style={{padding:8,background:'#f6f9fb',borderRadius:7}}><strong>{m.utilizador_id.slice(0,8)}…</strong><small style={{display:'block'}}>{m.perfil}</small></div>)}</div>:<p className="muted">Sem membros ativos devolvidos para este empreendimento.</p>}
+    <form onSubmit={async e=>{e.preventDefault();setInviteBusy(true);setError('');setMessage('');try{const {data:entity,error:entityError}=await supabase.from('empreendimentos').select('entidade_id').eq('id',selected).single();if(entityError)throw entityError;const {data,error}=await supabase.functions.invoke('ativus-member-invite',{body:{entity_id:entity.entidade_id,email:inviteDraft.email.trim(),perfil:inviteDraft.perfil}});if(error)throw error;if(data?.error)throw new Error(data.error);setInviteDraft({email:'',perfil:'tecnico'});setMessage(data?.message||'Convite submetido.');await loadTeamMembers();}catch(e){setError(e.message||'Não foi possível convidar o membro.')}finally{setInviteBusy(false)}}} style={{display:'flex',gap:8,flexWrap:'wrap',alignItems:'end'}}>
+     <label style={{flex:'1 1 220px'}}>Email do utilizador<input required type="email" value={inviteDraft.email} onChange={e=>setInviteDraft(v=>({...v,email:e.target.value}))} placeholder="nome@empresa.pt" style={{display:'block',width:'100%',padding:9,marginTop:5,boxSizing:'border-box'}}/></label>
+     <label>Perfil<select value={inviteDraft.perfil} onChange={e=>setInviteDraft(v=>({...v,perfil:e.target.value}))} style={{display:'block',padding:9,marginTop:5}}><option value="gestor">Gestor</option><option value="tecnico">Técnico</option><option value="consulta">Consulta</option></select></label>
+     <button className="primary" type="submit" disabled={inviteBusy||!selected}>{inviteBusy?'A enviar…':'Convidar membro'}</button>
+    </form>
+    <small className="muted">Apenas administradores ativos podem concluir o convite. O perfil Administrador não pode ser atribuído através deste formulário.</small>
+   </div>
    <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(145px,1fr))',gap:10,margin:'16px 0'}}>
     <div className="panel" style={{padding:12}}><small className="muted">Trabalhos em aberto</small><h2 style={{margin:'5px 0'}}>{workOrders.filter(x=>!['concluido','cancelado'].includes(x.estado)).length}</h2></div>
     <div className="panel" style={{padding:12}}><small className="muted">Atrasados</small><h2 style={{margin:'5px 0'}}>{workOrders.filter(x=>!['concluido','cancelado'].includes(x.estado)&&x.prazo_previsto&&x.prazo_previsto<new Date().toISOString().slice(0,10)).length}</h2></div>
