@@ -6,7 +6,7 @@ const categories=['Humidade ou água','Fissura ou racha','Elemento partido ou da
 const field={width:'100%',boxSizing:'border-box',padding:12,marginTop:6,border:'1px solid #cad8e5',borderRadius:9,fontSize:15,background:'#fff',color:'#23415b'};
 export default function PublicOccurrence({token}){
  const [form,setForm]=useState({category:categories[0],description:'',location:'',urgency:'nao_sei',reporter_name:'',contact:''});
- const [busy,setBusy]=useState(false),[error,setError]=useState(''),[result,setResult]=useState(null);
+ const [busy,setBusy]=useState(false),[error,setError]=useState(''),[result,setResult]=useState(null),[cancelled,setCancelled]=useState(false);
  const submit=async e=>{
   e.preventDefault();setBusy(true);setError('');
   try{
@@ -23,7 +23,7 @@ export default function PublicOccurrence({token}){
    <div style={{fontSize:12,fontWeight:800,letterSpacing:2,color:'#1c6598'}}>SEVEN M ATIVUS</div>
    <h1 style={{color:'#173b59',fontSize:25,margin:'12px 0 8px'}}>Comunicar uma ocorrência</h1>
    <p style={{color:'#52677a',lineHeight:1.5,marginTop:0}}>Descreva o que observou. Não precisa de conhecimentos técnicos nem de criar uma conta.</p>
-   {result?<div style={{padding:18,borderRadius:12,background:'#edf8f2',color:'#176344',marginTop:20}}>
+   {cancelled?<div style={{padding:18,borderRadius:12,background:'#f2f6fa',color:'#34536a',marginTop:20}}><h2 style={{margin:'4px 0 10px'}}>Comunicação cancelada</h2><p>Não foi enviada qualquer ocorrência. Pode fechar esta página ou voltar a preencher o formulário.</p><button type="button" onClick={()=>{setCancelled(false);setError('');setForm({category:categories[0],description:'',location:'',urgency:'nao_sei',reporter_name:'',contact:''});}} style={{width:'100%',padding:13,border:'1px solid #cad8e5',borderRadius:9,background:'#fff',color:'#1d5f91',fontWeight:700}}>Voltar ao formulário</button></div>:result?<div style={{padding:18,borderRadius:12,background:'#edf8f2',color:'#176344',marginTop:20}}>
     <CheckCircle2 size={28}/><h2 style={{margin:'10px 0'}}>Comunicação recebida</h2>
     <p>Obrigado. A sua comunicação foi registada e será analisada pela equipa responsável.</p>
     <p style={{fontSize:18,fontWeight:800}}>N.º {result.code}</p>
@@ -45,7 +45,7 @@ export default function PublicOccurrence({token}){
      <input maxLength={160} style={field} value={form.contact} onChange={e=>setForm(v=>({...v,contact:e.target.value}))}/>
     </div>
     {error&&<div role="alert" style={{marginTop:16,padding:12,borderRadius:9,background:'#fff1f0',color:'#9d2821',fontSize:13}}><AlertTriangle size={16}/> {error}</div>}
-    <button type="submit" disabled={busy} style={{display:'flex',alignItems:'center',justifyContent:'center',gap:9,width:'100%',marginTop:22,padding:14,border:0,borderRadius:10,background:'#1d5f91',color:'#fff',fontSize:15,fontWeight:700,opacity:busy?.65:1}}><Send size={17}/>{busy?'A enviar…':'Enviar comunicação'}</button>
+    <div style={{display:'grid',gridTemplateColumns:'1fr 1.5fr',gap:10,marginTop:22}}><button type="button" disabled={busy} onClick={()=>{setCancelled(true);setError('');}} style={{padding:14,border:'1px solid #cad8e5',borderRadius:10,background:'#fff',color:'#52677a',fontSize:14,fontWeight:700}}>Cancelar</button><button type="submit" disabled={busy} style={{display:'flex',alignItems:'center',justifyContent:'center',gap:9,padding:14,border:0,borderRadius:10,background:'#1d5f91',color:'#fff',fontSize:15,fontWeight:700,opacity:busy?.65:1}}><Send size={17}/>{busy?'A enviar…':'Enviar comunicação'}</button></div>
    </form>}
    <p style={{fontSize:11,color:'#8192a1',lineHeight:1.5,marginTop:22}}>Este formulário serve para comunicar ocorrências ao gestor do empreendimento. Em caso de perigo imediato para pessoas, contacte os serviços de emergência.</p>
   </div>
