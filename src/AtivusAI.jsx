@@ -67,7 +67,7 @@ export default function AtivusAI(){
  const [operationalLoading,setOperationalLoading]=useState(false);
  const [newWork,setNewWork]=useState({codigo:'',descricao:'',tipo:'preventivo',prioridade:'moderada',prazo_previsto:'',custo_total_estimado:'',equipa_responsavel:'',responsavel_id:'',orcamento_id:'',patologia_id:''});
  const [newPlan,setNewPlan]=useState({codigo:'',nome:'',descricao:'',tipo:'preventiva',periodicidade_valor:6,periodicidade_unidade:'meses'});
- const [newRule,setNewRule]=useState({tipo_inspecao:'rotina',intervalo_dias:90,proxima_inspecao:'',observacoes:''});
+ const [newRule,setNewRule]=useState({tipo_inspecao:'rotina',intervalo_dias:90,proxima_inspecao:'',observacoes:'',ativo_id:'',componente_id:'',responsavel_id:''});
  const [actionBusy,setActionBusy]=useState('');
  const [inventoryAssets,setInventoryAssets]=useState([]);
  const [inventoryComponents,setInventoryComponents]=useState([]);
@@ -76,6 +76,7 @@ export default function AtivusAI(){
  const [teamMembers,setTeamMembers]=useState([]);
  const [executionHistory,setExecutionHistory]=useState([]);
  const [workAuditHistory,setWorkAuditHistory]=useState([]);
+ const [inspectionRules,setInspectionRules]=useState([]);
  const [maintenanceReport,setMaintenanceReport]=useState(null);
  const [reportStart,setReportStart]=useState(new Date(new Date().getFullYear(),0,1).toISOString().slice(0,10));
  const [reportEnd,setReportEnd]=useState(new Date().toISOString().slice(0,10));
@@ -116,16 +117,17 @@ export default function AtivusAI(){
   if(!selected)return;
   setOperationalLoading(true);
   try{
-   const [w,p,a,k,b,pt]=await Promise.all([
+   const [w,p,a,k,b,pt,rr]=await Promise.all([
     supabase.from('trabalhos').select('id,codigo,descricao,tipo,prioridade,prazo_previsto,estado,custo_total_estimado,custo_real,percentagem_execucao,data_inicio_prevista,data_fim_prevista,responsavel_id,equipa_responsavel,orcamento_id,patologia_id').eq('empreendimento_id',selected).order('prazo_previsto',{ascending:true}).limit(200),
     supabase.from('planos_manutencao').select('id,codigo,nome,tipo,periodicidade_valor,periodicidade_unidade,ativo').eq('empreendimento_id',selected).order('nome'),
     supabase.from('manutencao_agendamentos').select('id,plano_id,data_prevista,estado,responsavel_id,trabalho_id,observacoes').eq('empreendimento_id',selected).order('data_prevista').limit(100),
     supabase.from('indicadores_manutencao').select('id,periodo_inicio,periodo_fim,trabalhos_abertos,trabalhos_atrasados,trabalhos_concluidos,custo_estimado,custo_real,inspecoes_previstas,inspecoes_concluidas').eq('empreendimento_id',selected).order('calculado_em',{ascending:false}).limit(6),
     supabase.from('orcamentos_manutencao').select('id,ano,designacao,valor_aprovado,valor_comprometido,valor_realizado,moeda,estado').eq('empreendimento_id',selected).order('ano',{ascending:false}).limit(20),
-    supabase.from('patologias').select('id,codigo,caracterizacao,prioridade,estado').eq('empreendimento_id',selected).order('identificada_em',{ascending:false}).limit(300)
+    supabase.from('patologias').select('id,codigo,caracterizacao,prioridade,estado').eq('empreendimento_id',selected).order('identificada_em',{ascending:false}).limit(300),
+    supabase.from('regras_inspecao_periodica').select('id,tipo_inspecao,intervalo_dias,ultima_inspecao,proxima_inspecao,responsavel_id,ativa,observacoes,ativo_id,componente_id').eq('empreendimento_id',selected).order('proxima_inspecao').limit(200)
    ]);
-   if(w.error)throw w.error;if(p.error)throw p.error;if(a.error)throw a.error;if(k.error)throw k.error;if(b.error)throw b.error;if(pt.error)throw pt.error;
-   setWorkOrders(w.data||[]);setMaintenancePlans(p.data||[]);setScheduledVisits(a.data||[]);setMaintenanceKpis(k.data||[]);setMaintenanceBudgets(b.data||[]);setMaintenancePathologies(pt.data||[]);
+   if(w.error)throw w.error;if(p.error)throw p.error;if(a.error)throw a.error;if(k.error)throw k.error;if(b.error)throw b.error;if(pt.error)throw pt.error;if(rr.error)throw rr.error;
+   setWorkOrders(w.data||[]);setMaintenancePlans(p.data||[]);setScheduledVisits(a.data||[]);setMaintenanceKpis(k.data||[]);setMaintenanceBudgets(b.data||[]);setMaintenancePathologies(pt.data||[]);setInspectionRules(rr.data||[]);
    const workIds=(w.data||[]).map(x=>x.id);
    if(workIds.length){const {data:history,error:historyError}=await supabase.from('trabalho_execucoes').select('id,trabalho_id,iniciado_em,terminado_em,descricao_trabalho,materiais_utilizados,horas,custo_mao_obra,custo_materiais,custo_equipamentos,custo_outros,estado,observacoes').in('trabalho_id',workIds).order('iniciado_em',{ascending:false}).limit(150);if(historyError)throw historyError;setExecutionHistory(history||[]);}else setExecutionHistory([]);
    if(workIds.length){const {data:audit,error:auditError}=await supabase.from('trabalho_historico').select('id,trabalho_id,operacao,estado_anterior,estado_novo,alterado_por,alterado_em').in('trabalho_id',workIds).order('alterado_em',{ascending:false}).limit(200);if(auditError)throw auditError;setWorkAuditHistory(audit||[]);}else setWorkAuditHistory([]);
@@ -271,9 +273,9 @@ export default function AtivusAI(){
      <h4 style={{marginTop:0}}>Criar regra de inspeção periódica</h4>
      <select value={newRule.tipo_inspecao} onChange={e=>setNewRule(v=>({...v,tipo_inspecao:e.target.value}))}><option value="rotina">Rotina</option><option value="principal">Principal</option><option value="especial">Especial</option></select>
      <label style={{display:'block',marginTop:8}}>Intervalo (dias)</label><input type="number" min="1" value={newRule.intervalo_dias} onChange={e=>setNewRule(v=>({...v,intervalo_dias:e.target.value}))}/>
-     <label style={{display:'block',marginTop:8}}>Próxima inspeção</label><input type="date" value={newRule.proxima_inspecao} onChange={e=>setNewRule(v=>({...v,proxima_inspecao:e.target.value}))}/>
+     <label style={{display:'block',marginTop:8}}>Ativo associado</label><select value={newRule.ativo_id} onChange={e=>setNewRule(v=>({...v,ativo_id:e.target.value,componente_id:''}))}><option value="">Todos os ativos / não especificado</option>{inventoryAssets.map(a=><option key={a.id} value={a.id}>{a.codigo} — {a.nome}</option>)}</select><label style={{display:'block',marginTop:8}}>Componente associado</label><select value={newRule.componente_id} onChange={e=>setNewRule(v=>({...v,componente_id:e.target.value,ativo_id:''}))}><option value="">Sem componente específico</option>{inventoryComponents.map(c=><option key={c.id} value={c.id}>{c.codigo} — {c.nome}</option>)}</select><label style={{display:'block',marginTop:8}}>Responsável</label><select value={newRule.responsavel_id} onChange={e=>setNewRule(v=>({...v,responsavel_id:e.target.value}))}><option value="">Sem responsável</option>{teamMembers.map(m=><option key={m.utilizador_id} value={m.utilizador_id}>{m.utilizador_id.slice(0,8)} · {m.perfil}</option>)}</select><label style={{display:'block',marginTop:8}}>Próxima inspeção</label><input type="date" value={newRule.proxima_inspecao} onChange={e=>setNewRule(v=>({...v,proxima_inspecao:e.target.value}))}/>
      <textarea placeholder="Observações" rows={2} value={newRule.observacoes} onChange={e=>setNewRule(v=>({...v,observacoes:e.target.value}))} style={{width:'100%',padding:9,margin:'8px 0',boxSizing:'border-box'}}/>
-     <button className="primary" disabled={!!actionBusy} onClick={async()=>{setActionBusy('rule');setError('');try{if(!newRule.proxima_inspecao)throw new Error('Indica a data da próxima inspeção.');const {data:user}=await supabase.auth.getUser();const {error}=await supabase.from('regras_inspecao_periodica').insert({empreendimento_id:selected,tipo_inspecao:newRule.tipo_inspecao,intervalo_dias:Number(newRule.intervalo_dias),proxima_inspecao:newRule.proxima_inspecao,observacoes:newRule.observacoes||null,criado_por:user?.user?.id});if(error)throw error;setNewRule({tipo_inspecao:'rotina',intervalo_dias:90,proxima_inspecao:'',observacoes:''});setMessage('Regra de inspeção criada.');}catch(e){setError(e.message||'Não foi possível criar a regra.');}finally{setActionBusy('');}}}>{actionBusy==='rule'?'A guardar…':'Criar regra'}</button>
+     <button className="primary" disabled={!!actionBusy} onClick={async()=>{setActionBusy('rule');setError('');try{if(!newRule.proxima_inspecao)throw new Error('Indica a data da próxima inspeção.');const {data:user}=await supabase.auth.getUser();const {error}=await supabase.from('regras_inspecao_periodica').insert({empreendimento_id:selected,tipo_inspecao:newRule.tipo_inspecao,intervalo_dias:Number(newRule.intervalo_dias),proxima_inspecao:newRule.proxima_inspecao,ativo_id:newRule.ativo_id||null,componente_id:newRule.componente_id||null,responsavel_id:newRule.responsavel_id||null,observacoes:newRule.observacoes||null,criado_por:user?.user?.id});if(error)throw error;setNewRule({tipo_inspecao:'rotina',intervalo_dias:90,proxima_inspecao:'',observacoes:'',ativo_id:'',componente_id:'',responsavel_id:''});setMessage('Regra de inspeção criada.');}catch(e){setError(e.message||'Não foi possível criar a regra.');}finally{setActionBusy('');}}}>{actionBusy==='rule'?'A guardar…':'Criar regra'}</button>
     </div>
    </div>
 
