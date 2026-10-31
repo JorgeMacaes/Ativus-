@@ -5,7 +5,7 @@ import {supabase} from './lib/supabase.js';
 const severityLabel=v=>v===5?'Crítica':v===4?'Alta':v===3?'Moderada':v===2?'Baixa':v===1?'Reduzida':v===0?'Sem gravidade avaliada':'Por avaliar';
 const statusLabel=v=>({identificada:'Identificada',em_analise:'Em análise',planeada:'Intervenção planeada',em_tratamento:'Em tratamento',resolvida:'Resolvida',encerrada:'Encerrada'}[v]||v||'—');
 export default function PathologiesLive(){
- const [rows,setRows]=useState([]),[workOrders,setWorkOrders]=useState([]),[enterprises,setEnterprises]=useState([]),[assets,setAssets]=useState([]),[components,setComponents]=useState([]),[loading,setLoading]=useState(true),[error,setError]=useState(''),[filter,setFilter]=useState(''),[selected,setSelected]=useState(null),[creatingWork,setCreatingWork]=useState(false),[message,setMessage]=useState('');
+ const [rows,setRows]=useState([]),[workOrders,setWorkOrders]=useState([]),[enterprises,setEnterprises]=useState([]),[entities,setEntities]=useState([]),[assets,setAssets]=useState([]),[components,setComponents]=useState([]),[loading,setLoading]=useState(true),[error,setError]=useState(''),[filter,setFilter]=useState(''),[selected,setSelected]=useState(null),[creatingWork,setCreatingWork]=useState(false),[message,setMessage]=useState('');
  const load=useCallback(async()=>{
   if(!supabase){setError('A ligação ao Supabase não está configurada.');setLoading(false);return;}
   setLoading(true);setError('');
@@ -15,13 +15,13 @@ export default function PathologiesLive(){
    const ids=[...new Set((m||[]).map(x=>x.entidade_id))];if(!ids.length)throw new Error('A conta não tem entidades ativas associadas.');
    const [e,a,c,p]=await Promise.all([
     supabase.from('empreendimentos').select('id,nome,codigo,entidade_id').in('entidade_id',ids).order('nome'),
-    supabase.from('ativos').select('id,empreendimento_id,codigo,nome').order('nome'),
-    supabase.from('componentes').select('id,empreendimento_id,ativo_id,codigo,nome').order('nome'),
+    supabase.from('entidades').select('id,nome').in('id',ids).order('nome'),\n    supabase.from('ativos').select('id,entidade_id,empreendimento_id,codigo,nome').order('nome'),
+    supabase.from('componentes').select('id,entidade_id,empreendimento_id,ativo_id,codigo,nome').order('nome'),
     supabase.from('patologias').select('*').order('identificada_em',{ascending:false})
    ]);
-   if(e.error||a.error||c.error||p.error)throw e.error||a.error||c.error||p.error;
+   if(e.error||g.error||a.error||c.error||p.error)throw e.error||g.error||a.error||c.error||p.error;
    const pathologyIds=(p.data||[]).map(x=>x.id);let linked=[];if(pathologyIds.length){const {data:w,error:we}=await supabase.from('trabalhos').select('id,codigo,descricao,estado,patologia_id').in('patologia_id',pathologyIds).order('criado_em',{ascending:false});if(we)throw we;linked=w||[];}
-   setEnterprises(e.data||[]);setAssets(a.data||[]);setComponents(c.data||[]);setRows(p.data||[]);setWorkOrders(linked);
+   setEnterprises(e.data||[]);setEntities(g.data||[]);setAssets(a.data||[]);setComponents(c.data||[]);setRows(p.data||[]);setWorkOrders(linked);
   }catch(err){setError(err?.message||'Não foi possível carregar as patologias.');}
   finally{setLoading(false);}
  },[]);
