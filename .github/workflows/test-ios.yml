@@ -1,0 +1,42 @@
+name: Teste iOS Seven M Ativus (sem publicação)
+on:
+  push:
+    branches:
+      - 'testes/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ios-simulator:
+    runs-on: macos-15
+    steps:
+      - name: Obter código
+        uses: actions/checkout@v4
+      - name: Preparar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verificar Xcode
+        run: xcodebuild -version
+      - name: Instalar dependências
+        run: npm install --legacy-peer-deps
+      - name: Compilar aplicação web
+        run: npm run build
+      - name: Adicionar plataforma iOS
+        run: npx cap add ios
+      - name: Sincronizar Capacitor
+        run: npx cap sync ios
+      - name: Compilar para simulador iOS
+        run: |
+          xcodebuild -workspace ios/App/App.xcworkspace \
+            -scheme App \
+            -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath ios/build \
+            CODE_SIGNING_ALLOWED=NO build
+      - name: Guardar aplicação de simulador
+        uses: actions/upload-artifact@v4
+        with:
+          name: seven-m-ativus-ios-simulator
+          path: ios/build/Build/Products/Debug-iphonesimulator/App.app
+          if-no-files-found: error
