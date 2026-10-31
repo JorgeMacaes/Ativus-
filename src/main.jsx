@@ -1,12 +1,13 @@
 import React,{useMemo,useState} from 'react';
 import {createRoot} from 'react-dom/client';
-import {Building2,ClipboardCheck,AlertTriangle,CalendarDays,Plus,Search,Settings,FileText,Activity,ChevronRight,Menu,X,LayoutDashboard,Boxes,Link2,Brain,ShieldCheck,Truck,BadgeCheck,CreditCard,ContactRound,Users,Handshake,Mail,Phone,RefreshCw} from 'lucide-react';
+import {Building2,ClipboardCheck,ClipboardList,AlertTriangle,CalendarDays,Plus,Search,Settings,FileText,Activity,ChevronRight,Menu,X,LayoutDashboard,Boxes,Link2,Brain,ShieldCheck,Truck,BadgeCheck,CreditCard,ContactRound,Users,Handshake,Mail,Phone,RefreshCw} from 'lucide-react';
 import './styles.css';
 import { backendConfigured, supabase } from './lib/supabase.js';
 import CRMCompanies from './CRMCompanies.jsx';
 import AtivusProjects from './AtivusProjects.jsx';
 import AtivusAI from './AtivusAI.jsx';
 import LiveInspections from './Inspections.jsx';
+import Occurrences from './Occurrences.jsx';
 
 const seedProjects=[
  {id:'EMP-0001',name:'Edifício Rua Central',location:'Porto',type:'Edifício multifamiliar',status:'Em curso',description:'Empreendimento de demonstração'}
@@ -48,7 +49,7 @@ function App(){
  const [projectError,setProjectError]=useState('');
  const filtered=useMemo(()=>assets.filter(a=>(a.name+' '+a.location+' '+a.id).toLowerCase().includes(query.toLowerCase())),[assets,query]);
  const current=selected?assets.find(a=>a.id===selected):null;
- const nav=[['dashboard','Dashboard',LayoutDashboard],['projects','Empreendimentos',Building2],['assets','Ativos / Inventário',Building2],['inspections','Inspeções',ClipboardCheck],['pathologies','Patologias',AlertTriangle],['agenda','Agenda',CalendarDays],['monitoring','Sistemas de Monitorização',Activity],['documents','Documentação',FileText],['ativus-ai','Ativus AI · Inventário Inteligente',Brain],['crm','CRM · Clientes e Contactos',ContactRound],['suppliers','Fornecedores e Licenças',Truck],['settings','Parametrização',Settings]];
+ const nav=[['dashboard','Dashboard',LayoutDashboard],['projects','Empreendimentos',Building2],['assets','Ativos / Inventário',Building2],['inspections','Inspeções',ClipboardCheck],['occurrences','Ocorrências',ClipboardList],['pathologies','Patologias',AlertTriangle],['agenda','Agenda',CalendarDays],['monitoring','Sistemas de Monitorização',Activity],['documents','Documentação',FileText],['ativus-ai','Ativus AI · Inventário Inteligente',Brain],['crm','CRM · Clientes e Contactos',ContactRound],['suppliers','Fornecedores e Licenças',Truck],['settings','Parametrização',Settings]];
  const go=id=>{setView(id);setMenu(false);if(id!=='asset')setSelected(null);if(id!=='project')setSelectedProject(null)};
  const addAsset=()=>{const name=window.prompt('Nome do ativo:');if(!name||!name.trim())return;const n=Math.max(0,...assets.map(a=>Number(String(a.id).replace(/\\D/g,''))||0))+1,a={id:'ATV-'+String(n).padStart(4,'0'),name:name.trim(),type:'Edifício residencial',location:'Por definir',status:'Ativo',ec:0,maintenance:'Bom',components:0,pathologies:0};const next=[a,...assets];setAssets(save('ativus_assets',next));setSelected(a.id);setView('asset')};
  const addInspection=asset=>{const n=inspections.length+1,i={id:'INS-'+String(n).padStart(4,'0'),asset,type:'Rotina',date:new Date().toISOString().slice(0,10),inspector:'Utilizador atual',ec:null,maintenance:'Bom',pathologies:0};setInspections(save('ativus_inspections',[i,...inspections]))};
@@ -78,6 +79,7 @@ function App(){
    {view==='assets'&&<Assets assets={filtered} query={query} setQuery={setQuery} onNew={addAsset} onOpen={id=>{setSelected(id);setView('asset')}}/>}
    {view==='asset'&&current&&<AssetDetail asset={current} inspections={inspections} pathologies={pathologies} onBack={()=>go('assets')} onNewInspection={()=>addInspection(current.id)} onNewPathology={addPathology}/>}
    {view==='inspections'&&<LiveInspections/>}
+   {view==='occurrences'&&<Occurrences/>}
    {view==='pathologies'&&<Pathologies pathologies={pathologies} assets={assets} onNew={addPathology}/>}
    {view==='agenda'&&<Agenda inspections={inspections} pathologies={pathologies}/>}
    {view==='monitoring'&&<Module icon={Activity} title="Sistemas de Monitorização" text="Instrumentação e aquisição de dados para deslocamentos, velocidade de corrosão e outros sensores."/>}
