@@ -63,6 +63,28 @@ export default function AtivusAI(){
  useEffect(()=>{load();},[load]);
  useEffect(()=>{loadSurveyData();},[loadSurveyData]);
  const selectedProject=useMemo(()=>projects.find(p=>p.id===selected),[projects,selected]);
+ const [workOrders,setWorkOrders]=useState([]),[maintenancePlans,setMaintenancePlans]=useState([]),[scheduledVisits,setScheduledVisits]=useState([]),[maintenanceKpis,setMaintenanceKpis]=useState([]),[maintenanceBudgets,setMaintenanceBudgets]=useState([]);
+ const [operationalLoading,setOperationalLoading]=useState(false);
+ const loadOperationalData=useCallback(async()=>{
+  if(!selected)return;
+  setOperationalLoading(true);
+  try{
+   const [w,p,a,k,b]=await Promise.all([
+    supabase.from('trabalhos').select('id,codigo,descricao,tipo,prioridade,prazo_previsto,estado,custo_total_estimado,custo_real,percentagem_execucao,data_inicio_prevista,data_fim_prevista,responsavel_id,equipa_responsavel').eq('empreendimento_id',selected).order('prazo_previsto',{ascending:true}).limit(200),
+    supabase.from('planos_manutencao').select('id,codigo,nome,tipo,periodicidade_valor,periodicidade_unidade,ativo').eq('empreendimento_id',selected).order('nome'),
+    supabase.from('manutencao_agendamentos').select('id,plano_id,data_prevista,estado,responsavel_id,trabalho_id,observacoes').eq('empreendimento_id',selected).order('data_prevista').limit(100),
+    supabase.from('indicadores_manutencao').select('id,periodo_inicio,periodo_fim,trabalhos_abertos,trabalhos_atrasados,trabalhos_concluidos,custo_estimado,custo_real,inspecoes_previstas,inspecoes_concluidas').eq('empreendimento_id',selected).order('calculado_em',{ascending:false}).limit(6),
+    supabase.from('orcamentos_manutencao').select('id,ano,designacao,valor_aprovado,valor_comprometido,valor_realizado,moeda,estado').eq('empreendimento_id',selected).order('ano',{ascending:false}).limit(20)
+   ]);
+   if(w.error)throw w.error;if(p.error)throw p.error;if(a.error)throw a.error;if(k.error)throw k.error;if(b.error)throw b.error;
+   setWorkOrders(w.data||[]);setMaintenancePlans(p.data||[]);setScheduledVisits(a.data||[]);setMaintenanceKpis(k.data||[]);setMaintenanceBudgets(b.data||[]);
+  }catch(e){setError(e?.message||'Não foi possível carregar o painel de manutenção.');}
+  finally{setOperationalLoading(false);}
+ },[selected]);
+ useEffect(()=>{loadOperationalData();},[loadOperationalData]);
+ const workStateLabel=v=>({planeado:'Planeado',pendente:'Pendente',em_execucao:'Em execução',concluido:'Concluído',cancelado:'Cancelado',suspenso:'Suspenso'}[v]||v||'—');
+ const euro=v=>new Intl.NumberFormat('pt-PT',{style:'currency',currency:'EUR'}).format(Number(v)||0);
+
  const chooseFiles=e=>{
   const chosen=Array.from(e.target.files||[]);
   const accepted=chosen.filter(f=>{
@@ -150,6 +172,26 @@ export default function AtivusAI(){
     </div>)}
    </div>
   </>}
+
+  <section className="panel" style={{padding:20,marginTop:18}}>
+   <div className="toolbar"><div><h3 style={{margin:0}}>Manutenção e Planeamento Operacional</h3><p className="muted">Ordens de trabalho, calendário preventivo, equipas, orçamento e indicadores.</p></div><button className="secondary" onClick={loadOperationalData} disabled={operationalLoading}>{operationalLoading?'A atualizar…':'Atualizar painel'}</button></div>
+   <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(145px,1fr))',gap:10,margin:'16px 0'}}>
+    <div className="panel" style={{padding:12}}><small className="muted">Trabalhos em aberto</small><h2 style={{margin:'5px 0'}}>{workOrders.filter(x=>!['concluido','cancelado'].includes(x.estado)).length}</h2></div>
+    <div className="panel" style={{padding:12}}><small className="muted">Atrasados</small><h2 style={{margin:'5px 0'}}>{workOrders.filter(x=>!['concluido','cancelado'].includes(x.estado)&&x.prazo_previsto&&x.prazo_previsto<new Date().toISOString().slice(0,10)).length}</h2></div>
+    <div className="panel" style={{padding:12}}><small className="muted">Planos ativos</small><h2 style={{margin:'5px 0'}}>{maintenancePlans.filter(x=>x.ativo).length}</h2></div>
+    <div className="panel" style={{padding:12}}><small className="muted">Próximos agendamentos</small><h2 style={{margin:'5px 0'}}>{scheduledVisits.filter(x=>x.data_prevista>=new Date().toISOString().slice(0,10)&&!['concluido','cancelado'].includes(x.estado)).length}</h2></div>
+   </div>
+   <h4>Ordens de trabalho</h4>
+   {!workOrders.length?<p className="muted">Ainda não existem ordens de trabalho neste empreendimento.</p>:<div style={{overflowX:'auto'}}><table style={{width:'100%',borderCollapse:'collapse',fontSize:13}}><thead><tr>{['Código / descrição','Prioridade','Prazo','Responsável / equipa','Execução','Custo estimado','Estado'].map(x=><th key={x} style={{textAlign:'left',padding:8,borderBottom:'1px solid #dce6ee'}}>{x}</th>)}</tr></thead><tbody>{workOrders.map(w=><tr key={w.id}><td style={{padding:8,borderBottom:'1px solid #edf1f5'}}><strong>{w.codigo}</strong><small style={{display:'block'}}>{w.descricao}</small></td><td style={{padding:8}}>{w.prioridade||'—'}</td><td style={{padding:8,whiteSpace:'nowrap'}}>{w.prazo_previsto||'—'}</td><td style={{padding:8}}>{w.equipa_responsavel||w.responsavel_id||'Por atribuir'}</td><td style={{padding:8,minWidth:90}}>{Number(w.percentagem_execucao)||0}%<div style={{height:5,background:'#e7edf2',borderRadius:5}}><div style={{height:5,width:(Number(w.percentagem_execucao)||0)+'%',background:'#2474a6',borderRadius:5}}/></div></td><td style={{padding:8,whiteSpace:'nowrap'}}>{euro(w.custo_total_estimado)}</td><td style={{padding:8}}>{workStateLabel(w.estado)}</td></tr>)}</tbody></table></div>}
+   <h4 style={{marginTop:20}}>Calendário de manutenção</h4>
+   {!scheduledVisits.length?<p className="muted">Sem agendamentos registados.</p>:<div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(210px,1fr))',gap:8}}>{scheduledVisits.map(a=><div key={a.id} style={{padding:10,border:'1px solid #e1e8ee',borderRadius:8}}><strong>{new Date(a.data_prevista+'T12:00:00').toLocaleDateString('pt-PT')}</strong><small style={{display:'block'}}>{maintenancePlans.find(p=>p.id===a.plano_id)?.nome||'Plano de manutenção'}</small><small className="muted">{workStateLabel(a.estado)}</small></div>)}</div>}
+   <h4 style={{marginTop:20}}>Planos preventivos</h4>
+   {!maintenancePlans.length?<p className="muted">Ainda não existem planos de manutenção.</p>:maintenancePlans.map(p=><div key={p.id} style={{padding:'8px 0',borderBottom:'1px solid #edf1f5'}}><strong>{p.codigo} · {p.nome}</strong><small className="muted" style={{display:'block'}}>{p.tipo} · periodicidade: {p.periodicidade_valor} {p.periodicidade_unidade} · {p.ativo?'Ativo':'Inativo'}</small></div>)}
+   <h4 style={{marginTop:20}}>Orçamentos</h4>
+   {!maintenanceBudgets.length?<p className="muted">Sem orçamento de manutenção registado.</p>:maintenanceBudgets.map(b=><div key={b.id} style={{display:'flex',justifyContent:'space-between',gap:12,padding:'8px 0',borderBottom:'1px solid #edf1f5'}}><span><strong>{b.ano} · {b.designacao}</strong><small className="muted" style={{display:'block'}}>{b.estado}</small></span><span style={{textAlign:'right'}}>{euro(b.valor_realizado)} / {euro(b.valor_aprovado)}<small className="muted" style={{display:'block'}}>Realizado / aprovado</small></span></div>)}
+   <h4 style={{marginTop:20}}>Indicadores calculados</h4>
+   {!maintenanceKpis.length?<p className="muted">Ainda não existem períodos de indicadores calculados.</p>:maintenanceKpis.map(k=><div key={k.id} style={{padding:'8px 0',borderBottom:'1px solid #edf1f5'}}><strong>{new Date(k.periodo_inicio+'T12:00:00').toLocaleDateString('pt-PT')} – {new Date(k.periodo_fim+'T12:00:00').toLocaleDateString('pt-PT')}</strong><small className="muted" style={{display:'block'}}>{k.trabalhos_abertos} abertos · {k.trabalhos_atrasados} atrasados · {k.trabalhos_concluidos} concluídos · custo real {euro(k.custo_real)}</small></div>)}
+  </section>
   <p className="muted" style={{marginTop:14}}><HardDrive size={14}/> Os ficheiros ficam privados e associados ao empreendimento. A análise automática já está disponível para PDF e imagens. Os restantes formatos são guardados e aguardam os respetivos módulos de conversão e interpretação CAD/BIM.</p>
  </section>;
 }
