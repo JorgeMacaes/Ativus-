@@ -1,0 +1,1 @@
+alter table public.empreendimentos add column if not exists codigo_postal text, add column if not exists localidade text, add column if not exists concelho text, add column if not exists distrito text;
