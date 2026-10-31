@@ -58,9 +58,9 @@ function App(){
  const current=selected?assets.find(a=>a.id===selected):null;
  const navGroups=[
   {id:'geral',title:'GERAL',items:[['dashboard','Dashboard',LayoutDashboard],['help','Centro de Ajuda',BookOpen]]},
-  {id:'ativos',title:'GESTÃO DE ATIVOS',items:[['assets','Ativos / Inventário',Boxes],['projects','Agrupamentos (opcional)',Building2],['inspections','Inspeções',ClipboardCheck],['occurrences','Ocorrências',ClipboardList],['pathologies','Patologias',AlertTriangle],['agenda','Agenda',CalendarDays],['monitoring','Sistemas de Monitorização',Activity]]},
+  {id:'ativos',title:'GESTÃO DE ATIVOS',items:[['assets','Inventário · Ativos',Boxes],['ativus-ai','Inventário Inteligente',Brain],['projects','Agrupamentos (opcional)',Building2],['inspections','Inspeções',ClipboardCheck],['occurrences','Ocorrências',ClipboardList],['pathologies','Patologias',AlertTriangle],['agenda','Agenda',CalendarDays],['monitoring','Sistemas de Monitorização',Activity]]},
   {id:'operacao',title:'OPERAÇÕES E SUPORTE',items:[['helpdesk','Ativus Help Desk',Headset],['documents','Documentação',FileText],['suppliers','Fornecedores e Licenças',Truck]]},
-  {id:'negocio',title:'GESTÃO COMERCIAL E INTELIGÊNCIA',items:[['crm','CRM · Clientes e Contactos',ContactRound],['ativus-ai','Ativus AI · Inventário Inteligente',Brain]]},
+  {id:'negocio',title:'GESTÃO COMERCIAL',items:[['crm','CRM · Clientes e Contactos',ContactRound]]},
   {id:'config',title:'CONFIGURAÇÃO',items:[['settings','Parametrização',Settings]]}
  ];
  const go=id=>{setView(id);setMenu(false);if(id!=='asset')setSelected(null);if(id!=='project')setSelectedProject(null)};
