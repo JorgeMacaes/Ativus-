@@ -12,7 +12,7 @@ import PathologiesLive from './PathologiesLive.jsx';
 import PublicOccurrence from './PublicOccurrence.jsx';
 import TechnicalDocuments from './TechnicalDocuments.jsx';
 import Monitoring from './Monitoring.jsx';
-import {HelpCenter,HelpDesk} from './HelpCenter.jsx';
+import {HelpCenter,HelpDesk,CRMActivityPanel} from './HelpCenter.jsx';
 
 const seedProjects=[
  {id:'EMP-0001',name:'Edifício Rua Central',location:'Porto',type:'Edifício multifamiliar',status:'Em curso',description:'Empreendimento de demonstração'}
@@ -183,10 +183,7 @@ function CRM(){
     <div style={{display:'flex',justifyContent:'flex-end',gap:8,marginTop:16}}><button type="button" className="secondary" onClick={()=>setFormOpen(false)}>Cancelar</button><button type="submit" className="primary" disabled={saving}>{saving?'A guardar…':'Guardar contacto'}</button></div>
    </form>
   </div>}
- </section>;
-}
-
-function Suppliers(){
+ <CRMActivityPanel/>\n </section>;\n}\n\nfunction Suppliers(){
  const [loading,setLoading]=useState(true);
  const [saving,setSaving]=useState(false);
  const [supplier,setSupplier]=useState(null);
