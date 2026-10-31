@@ -280,6 +280,10 @@ export default function AtivusAI(){
    </div>
 
     <div style={{padding:14,border:'1px solid #dce6ee',borderRadius:10,margin:'12px 0'}}>
+     <h4 style={{marginTop:0}}>Regras de inspeção periódica</h4>
+     {!inspectionRules.length?<p className="muted">Ainda não existem regras de inspeção.</p>:inspectionRules.map(r=><div key={r.id} style={{display:'flex',justifyContent:'space-between',gap:10,alignItems:'center',padding:'8px 0',borderBottom:'1px solid #edf1f5'}}><span><strong>{r.tipo_inspecao} · {r.intervalo_dias} dias</strong><small className="muted" style={{display:'block'}}>Próxima: {r.proxima_inspecao||'Por definir'} · {r.ativo_id?(inventoryAssets.find(a=>a.id===r.ativo_id)?.codigo||'Ativo associado'):r.componente_id?(inventoryComponents.find(c=>c.id===r.componente_id)?.codigo||'Componente associado'):'Âmbito geral'}</small></span><button className="secondary" onClick={async()=>{const {error}=await supabase.from('regras_inspecao_periodica').update({ativa:!r.ativa}).eq('id',r.id);if(error)setError(error.message);else{setMessage(r.ativa?'Regra desativada.':'Regra ativada.');await loadOperationalData();}}}>{r.ativa?'Desativar':'Ativar'}</button></div>)}
+    </div>
+    <div style={{padding:14,border:'1px solid #dce6ee',borderRadius:10,margin:'12px 0'}}>
      <h4 style={{marginTop:0}}>Associar ativos e componentes a um plano</h4>
      <select value={planElement.plano_id} onChange={e=>setPlanElement(v=>({...v,plano_id:e.target.value}))}><option value="">Selecionar plano de manutenção</option>{maintenancePlans.map(p=><option key={p.id} value={p.id}>{p.codigo} — {p.nome}</option>)}</select>
      <select value={planElement.ativo_id} onChange={e=>setPlanElement(v=>({...v,ativo_id:e.target.value,componente_id:''}))} style={{marginLeft:8}}><option value="">Ativo (opcional)</option>{inventoryAssets.map(a=><option key={a.id} value={a.id}>{a.codigo} — {a.nome}</option>)}</select>
