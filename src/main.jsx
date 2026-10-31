@@ -8,6 +8,7 @@ import AtivusProjects from './AtivusProjects.jsx';
 import AtivusAI from './AtivusAI.jsx';
 import LiveInspections from './Inspections.jsx';
 import Occurrences from './Occurrences.jsx';
+import PublicOccurrence from './PublicOccurrence.jsx';
 
 const seedProjects=[
  {id:'EMP-0001',name:'Edifício Rua Central',location:'Porto',type:'Edifício multifamiliar',status:'Em curso',description:'Empreendimento de demonstração'}
@@ -295,6 +296,7 @@ function AssetRow({a,onClick}){return <button className="assetrow" onClick={onCl
 function Ec({value}){return <span className={'ec ec'+value}>EC {value}</span>}
 function Badge({value}){return <span className={'badge '+String(value).toLowerCase().replaceAll(' ','-')}>{value}</span>}
 function AuthGate(){
+ const qrToken=new URLSearchParams(window.location.search).get('report');
  const [session,setSession]=useState(null);
  const [loading,setLoading]=useState(true);
  const [mode,setMode]=useState('login');
@@ -332,6 +334,7 @@ const result = mode === 'login'
    finally{setBusy(false)}
  };
  const signOut=async()=>{await supabase?.auth.signOut();setSession(null)};
+ if(qrToken)return <PublicOccurrence token={qrToken}/>;
  if(loading)return <div style={{minHeight:'100vh',display:'grid',placeItems:'center',background:'#f3f7fb',color:'#23415b'}}>A verificar sessão…</div>;
  if(session)return <><div style={{position:'fixed',zIndex:1000,top:12,right:16,display:'flex',gap:10,alignItems:'center',background:'#fff',border:'1px solid #dbe5ee',borderRadius:12,padding:'8px 12px',fontSize:12,color:'#23415b'}}><span>{session.user?.email}</span><button onClick={signOut} style={{border:0,borderRadius:8,padding:'7px 10px',background:'#eaf1f7',color:'#23415b'}}>Terminar sessão</button></div><App/></>;
  if(!backendConfigured)return <div style={{minHeight:'100vh',display:'grid',placeItems:'center',padding:24,background:'#f3f7fb',fontFamily:'Arial,sans-serif'}}><div style={{maxWidth:430,width:'100%',background:'#fff',border:'1px solid #dbe5ee',borderRadius:20,padding:28,boxSizing:'border-box'}}><img src={import.meta.env.BASE_URL+'seven-m-ativus.svg'} alt="Seven M Ativus" style={{width:230,maxWidth:'100%',height:'auto',marginBottom:22}}/><h1 style={{color:'#173b59',fontSize:24}}>Acesso à plataforma</h1><p style={{color:'#52677a',lineHeight:1.5}}>A autenticação está preparada no código, mas falta configurar a ligação ao Supabase na publicação web. Não introduzas aqui a tua palavra-passe.</p><p style={{fontSize:12,color:'#52677a'}}>Estado: backend não configurado.</p></div></div>;
