@@ -12,6 +12,12 @@ export default function TechnicalDocuments(){
   if(!supabase){setError('Supabase não está configurado.');setLoading(false);return}
   setLoading(true);setError('');
   try{
+   if(file.size>250*1024*1024)throw new Error('O ficheiro excede o limite de 250 MB.');
+   if(form.ativo_id&&!assets.some(x=>x.id===form.ativo_id))throw new Error('O ativo selecionado não pertence ao empreendimento atual.');
+   if(form.componente_id&&!components.some(x=>x.id===form.componente_id))throw new Error('O componente selecionado não pertence ao empreendimento atual.');
+   if(form.inspecao_id&&!inspections.some(x=>x.id===form.inspecao_id))throw new Error('A inspeção selecionada não pertence ao empreendimento atual.');
+   if(form.patologia_id&&!pathologies.some(x=>x.id===form.patologia_id))throw new Error('A patologia selecionada não pertence ao empreendimento atual.');
+   if(form.trabalho_id&&!works.some(x=>x.id===form.trabalho_id))throw new Error('A ordem de trabalho selecionada não pertence ao empreendimento atual.');
    const {data:u,error:ue}=await supabase.auth.getUser();if(ue)throw ue;if(!u?.user)throw new Error('Inicia sessão para consultar a documentação.');
    const {data:m,error:me}=await supabase.from('membros_entidade').select('entidade_id').eq('utilizador_id',u.user.id).eq('ativo',true);if(me)throw me;
    const ids=[...new Set((m||[]).map(x=>x.entidade_id))];if(!ids.length)throw new Error('Não existem entidades associadas à conta.');
@@ -23,7 +29,7 @@ export default function TechnicalDocuments(){
  },[]);
  useEffect(()=>{load()},[load]);
  const loadInventory=async id=>{
-  setForm(v=>({...v,empreendimento_id:id,ativo_id:'',componente_id:''}));
+  setForm(v=>({...v,empreendimento_id:id,ativo_id:'',componente_id:'',inspecao_id:'',patologia_id:'',trabalho_id:''}));
   if(!id){setAssets([]);setComponents([]);setInspections([]);setPathologies([]);setWorks([]);return}
   const [a,c,i,p,w]=await Promise.all([supabase.from('ativos').select('id,codigo,nome').eq('empreendimento_id',id).order('nome'),supabase.from('componentes').select('id,codigo,nome,ativo_id').eq('empreendimento_id',id).order('nome'),supabase.from('inspecoes').select('id,codigo,tipo,data_inspecao').eq('empreendimento_id',id).order('data_inspecao',{ascending:false}),supabase.from('patologias').select('id,codigo,tipo,caracterizacao').eq('empreendimento_id',id).order('identificada_em',{ascending:false}),supabase.from('trabalhos').select('id,codigo,descricao,estado').eq('empreendimento_id',id).order('criado_em',{ascending:false})]);
   const failure=[a,c,i,p,w].find(x=>x.error);if(failure){setError(failure.error.message);return}
@@ -70,13 +76,13 @@ export default function TechnicalDocuments(){
     <label>Inspeção associada (opcional)<select value={form.inspecao_id} onChange={e=>setForm(v=>({...v,inspecao_id:e.target.value}))}><option value="">Não associada</option>{inspections.map(x=><option key={x.id} value={x.id}>{x.codigo} · {x.tipo} · {x.data_inspecao}</option>)}</select></label>
     <label>Patologia associada (opcional)<select value={form.patologia_id} onChange={e=>setForm(v=>({...v,patologia_id:e.target.value}))}><option value="">Não associada</option>{pathologies.map(x=><option key={x.id} value={x.id}>{x.codigo||'Sem código'} · {x.tipo||x.caracterizacao||'Patologia'}</option>)}</select></label>
     <label>Ordem de trabalho associada (opcional)<select value={form.trabalho_id} onChange={e=>setForm(v=>({...v,trabalho_id:e.target.value}))}><option value="">Não associada</option>{works.map(x=><option key={x.id} value={x.id}>{x.codigo} · {x.descricao}</option>)}</select></label>
-    <label>Ficheiro *<input required type="file" onChange={e=>setFile(e.target.files?.[0]||null)}/></label>
+    <label>Ficheiro *<input required type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.dwg,.dxf,.ifc,.rvt,.jpg,.jpeg,.png,.webp,.tif,.tiff" onChange={e=>setFile(e.target.files?.[0]||null)}/><small className="muted">Máximo 250 MB. A aceitação do formato não significa que exista extração automática para CAD/BIM.</small></label>
    </div>
    <label style={{display:'block',marginTop:12}}>Descrição / observações<textarea rows="2" value={form.descricao} onChange={e=>setForm(v=>({...v,descricao:e.target.value}))}/></label>
    <button className="primary" type="submit" disabled={saving||!file||!form.empreendimento_id}>{saving?'A arquivar…':'Arquivar documento'}</button>
   </form>
   <div className="panel table"><div className="thead"><span>Documento</span><span>Empreendimento</span><span>Categoria</span><span>Data</span><span>Ações</span></div>
-   {rows.length?rows.map(r=><div className="trow" key={r.id}><div><strong>{r.nome}</strong><small>{r.mime_type||'Ficheiro'} · {r.tamanho_bytes?Math.round(r.tamanho_bytes/1024)+' KB':''}</small></div><span>{projects.find(p=>p.id===r.empreendimento_id)?.nome||'—'}</span><span>{categories.find(x=>x[0]===r.categoria)?.[1]||r.categoria}</span><span>{new Date(r.criado_em).toLocaleDateString('pt-PT')}</span><span style={{display:'flex',gap:6}}><button type="button" className="secondary" onClick={()=>openFile(r)} title="Abrir"><Download size={15}/></button><button type="button" className="secondary" onClick={()=>remove(r)} title="Eliminar"><Trash2 size={15}/></button></span></div>):<p className="empty">Ainda não existem documentos arquivados neste registo.</p>}
+   {rows.length?rows.map(r=><div className="trow" key={r.id}><div><strong>{r.nome}</strong><small>{r.mime_type||'Ficheiro'} · {r.tamanho_bytes?Math.round(r.tamanho_bytes/1024)+' KB':''}{r.descricao?' · '+r.descricao:''}</small><small className="muted">{[r.ativo_id&&'Ativo',r.componente_id&&'Componente',r.inspecao_id&&'Inspeção',r.patologia_id&&'Patologia',r.trabalho_id&&'Ordem de trabalho'].filter(Boolean).join(' · ')||'Sem associação técnica específica'}</small></div><span>{projects.find(p=>p.id===r.empreendimento_id)?.nome||'—'}</span><span>{categories.find(x=>x[0]===r.categoria)?.[1]||r.categoria}</span><span>{new Date(r.criado_em).toLocaleDateString('pt-PT')}</span><span style={{display:'flex',gap:6}}><button type="button" className="secondary" onClick={()=>openFile(r)} title="Abrir"><Download size={15}/></button><button type="button" className="secondary" onClick={()=>remove(r)} title="Eliminar"><Trash2 size={15}/></button></span></div>):<p className="empty">Ainda não existem documentos arquivados neste registo.</p>}
   </div>
  </section>
 }
