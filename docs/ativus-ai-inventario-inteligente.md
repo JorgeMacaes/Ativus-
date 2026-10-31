@@ -15,6 +15,35 @@ Nenhum resultado de IA pode criar ou alterar ativos/componentes definitivos sem 
 - Vídeos de levantamentos e inspeções, quando tecnicamente suportados.
 - Fichas técnicas, manuais, mapas de quantidades e documentação de obra.
 
+
+## Formatos de ficheiro e processamento técnico
+
+O módulo deve permitir carregar documentação multidisciplinar. A aceitação do upload não significa que todos os formatos sejam interpretados diretamente: cada formato terá um adaptador de leitura, conversão ou extração próprio.
+
+### Formatos a suportar
+- **Desenho e CAD 2D:** PDF, DWG, DXF, DWT.
+- **CAD e modelos 3D:** DWG 3D, DXF 3D, STEP/STP, IGES/IGS.
+- **BIM:** IFC como formato prioritário de intercâmbio; RVT, RFA e PLN quando exista exportação/conversão compatível.
+- **Modelos 3D e malhas:** OBJ, STL, PLY, GLB, GLTF, FBX.
+- **Nuvens de pontos e digitalização:** E57, LAS, LAZ.
+- **Documentação:** DOC, DOCX, XLS, XLSX, CSV, TXT.
+- **Imagem e digitalização:** JPG, JPEG, PNG, TIFF, WebP.
+- **Vídeo:** MP4 e MOV numa fase própria, sujeito a limites e extração de fotogramas.
+
+### Estratégia de interpretação
+- Priorizar IFC para extração BIM estruturada: entidades, pisos, espaços, sistemas, propriedades e relações.
+- Para DWG/DXF, extrair camadas, blocos, textos, cotas e geometria com bibliotecas/serviços compatíveis; gerar pré-visualização quando possível.
+- Para RVT/RFA e formatos proprietários, exigir exportação para IFC/DWG/PDF quando não houver leitor autorizado e tecnicamente adequado.
+- Para STEP/IGES e formatos de malha, extrair geometria e metadados técnicos com ferramentas específicas; não inferir materiais ou função sem evidência.
+- Para E57/LAS/LAZ, prever processamento de nuvens de pontos como funcionalidade avançada, não como requisito do primeiro MVP.
+- Manter o ficheiro original imutável e guardar derivados/conversões ligados ao original.
+
+### Metadados e limites
+Registar extensão, MIME declarado e detetado, tamanho, hash, versão, origem, estado de processamento e ficheiro derivado. Validar extensão e conteúdo real no processamento; não confiar apenas no MIME enviado pelo navegador. Aplicar limites por formato e proteção contra ficheiros malformados ou excessivamente complexos.
+
+### Resultados e rastreabilidade
+Cada elemento extraído deve apontar para o ficheiro de origem e, sempre que possível, para camada, entidade IFC, página, região, coordenada ou intervalo de fotogramas. A IA deve distinguir geometria extraída diretamente, valores calculados, estimativas e campos desconhecidos.
+
 ## Fluxo funcional
 1. Criar uma sessão de levantamento associada a um empreendimento e, opcionalmente, a um ativo existente.
 2. Carregar um ou vários ficheiros e registar origem, autor, data e contexto.
