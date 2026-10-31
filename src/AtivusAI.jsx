@@ -77,6 +77,7 @@ export default function AtivusAI(){
  const [executionHistory,setExecutionHistory]=useState([]);
  const [workAuditHistory,setWorkAuditHistory]=useState([]);
  const [inspectionRules,setInspectionRules]=useState([]);
+ const [inspectionRecords,setInspectionRecords]=useState([]);
  const [maintenanceReport,setMaintenanceReport]=useState(null);
  const [reportStart,setReportStart]=useState(new Date(new Date().getFullYear(),0,1).toISOString().slice(0,10));
  const [reportEnd,setReportEnd]=useState(new Date().toISOString().slice(0,10));
@@ -117,17 +118,18 @@ export default function AtivusAI(){
   if(!selected)return;
   setOperationalLoading(true);
   try{
-   const [w,p,a,k,b,pt,rr]=await Promise.all([
+   const [w,p,a,k,b,pt,rr,ii]=await Promise.all([
     supabase.from('trabalhos').select('id,codigo,descricao,tipo,prioridade,prazo_previsto,estado,custo_total_estimado,custo_real,percentagem_execucao,data_inicio_prevista,data_fim_prevista,responsavel_id,equipa_responsavel,orcamento_id,patologia_id').eq('empreendimento_id',selected).order('prazo_previsto',{ascending:true}).limit(200),
     supabase.from('planos_manutencao').select('id,codigo,nome,tipo,periodicidade_valor,periodicidade_unidade,ativo').eq('empreendimento_id',selected).order('nome'),
     supabase.from('manutencao_agendamentos').select('id,plano_id,data_prevista,estado,responsavel_id,trabalho_id,observacoes').eq('empreendimento_id',selected).order('data_prevista').limit(100),
     supabase.from('indicadores_manutencao').select('id,periodo_inicio,periodo_fim,trabalhos_abertos,trabalhos_atrasados,trabalhos_concluidos,custo_estimado,custo_real,inspecoes_previstas,inspecoes_concluidas').eq('empreendimento_id',selected).order('calculado_em',{ascending:false}).limit(6),
     supabase.from('orcamentos_manutencao').select('id,ano,designacao,valor_aprovado,valor_comprometido,valor_realizado,moeda,estado').eq('empreendimento_id',selected).order('ano',{ascending:false}).limit(20),
     supabase.from('patologias').select('id,codigo,caracterizacao,prioridade,estado').eq('empreendimento_id',selected).order('identificada_em',{ascending:false}).limit(300),
-    supabase.from('regras_inspecao_periodica').select('id,tipo_inspecao,intervalo_dias,ultima_inspecao,proxima_inspecao,responsavel_id,ativa,observacoes,ativo_id,componente_id').eq('empreendimento_id',selected).order('proxima_inspecao').limit(200)
+    supabase.from('regras_inspecao_periodica').select('id,tipo_inspecao,intervalo_dias,ultima_inspecao,proxima_inspecao,responsavel_id,ativa,observacoes,ativo_id,componente_id').eq('empreendimento_id',selected).order('proxima_inspecao').limit(200),
+    supabase.from('inspecoes').select('id,codigo,tipo,data_inspecao,inspetor_id,inspetor_nome,objetivo,observacoes,estado,iniciada_em,concluida_em').eq('empreendimento_id',selected).order('data_inspecao',{ascending:false}).limit(200)
    ]);
-   if(w.error)throw w.error;if(p.error)throw p.error;if(a.error)throw a.error;if(k.error)throw k.error;if(b.error)throw b.error;if(pt.error)throw pt.error;if(rr.error)throw rr.error;
-   setWorkOrders(w.data||[]);setMaintenancePlans(p.data||[]);setScheduledVisits(a.data||[]);setMaintenanceKpis(k.data||[]);setMaintenanceBudgets(b.data||[]);setMaintenancePathologies(pt.data||[]);setInspectionRules(rr.data||[]);
+   if(w.error)throw w.error;if(p.error)throw p.error;if(a.error)throw a.error;if(k.error)throw k.error;if(b.error)throw b.error;if(pt.error)throw pt.error;if(rr.error)throw rr.error;if(ii.error)throw ii.error;
+   setWorkOrders(w.data||[]);setMaintenancePlans(p.data||[]);setScheduledVisits(a.data||[]);setMaintenanceKpis(k.data||[]);setMaintenanceBudgets(b.data||[]);setMaintenancePathologies(pt.data||[]);setInspectionRules(rr.data||[]);setInspectionRecords(ii.data||[]);
    const workIds=(w.data||[]).map(x=>x.id);
    if(workIds.length){const {data:history,error:historyError}=await supabase.from('trabalho_execucoes').select('id,trabalho_id,iniciado_em,terminado_em,descricao_trabalho,materiais_utilizados,horas,custo_mao_obra,custo_materiais,custo_equipamentos,custo_outros,estado,observacoes').in('trabalho_id',workIds).order('iniciado_em',{ascending:false}).limit(150);if(historyError)throw historyError;setExecutionHistory(history||[]);}else setExecutionHistory([]);
    if(workIds.length){const {data:audit,error:auditError}=await supabase.from('trabalho_historico').select('id,trabalho_id,operacao,estado_anterior,estado_novo,alterado_por,alterado_em').in('trabalho_id',workIds).order('alterado_em',{ascending:false}).limit(200);if(auditError)throw auditError;setWorkAuditHistory(audit||[]);}else setWorkAuditHistory([]);
@@ -279,6 +281,10 @@ export default function AtivusAI(){
     </div>
    </div>
 
+    <div style={{padding:14,border:'1px solid #dce6ee',borderRadius:10,margin:'12px 0'}}>
+     <h4 style={{marginTop:0}}>Inspeções do empreendimento</h4>
+     {!inspectionRecords.length?<p className="muted">Ainda não existem inspeções registadas.</p>:<div style={{overflowX:'auto',maxHeight:300}}><table style={{width:'100%',fontSize:12,borderCollapse:'collapse'}}><thead><tr><th>Código</th><th>Tipo</th><th>Data</th><th>Inspetor</th><th>Estado</th><th>Objetivo</th></tr></thead><tbody>{inspectionRecords.map(i=><tr key={i.id}><td>{i.codigo}</td><td>{i.tipo}</td><td>{i.data_inspecao?new Date(i.data_inspecao+'T00:00:00').toLocaleDateString('pt-PT'):'—'}</td><td>{i.inspetor_nome||i.inspetor_id?.slice(0,8)||'—'}</td><td>{i.estado}</td><td>{i.objetivo||'—'}</td></tr>)}</tbody></table></div>}
+    </div>
     <div style={{padding:14,border:'1px solid #dce6ee',borderRadius:10,margin:'12px 0'}}>
      <h4 style={{marginTop:0}}>Regras de inspeção periódica</h4>
      {!inspectionRules.length?<p className="muted">Ainda não existem regras de inspeção.</p>:inspectionRules.map(r=><div key={r.id} style={{display:'flex',justifyContent:'space-between',gap:10,alignItems:'center',padding:'8px 0',borderBottom:'1px solid #edf1f5'}}><span><strong>{r.tipo_inspecao} · {r.intervalo_dias} dias</strong><small className="muted" style={{display:'block'}}>Próxima: {r.proxima_inspecao||'Por definir'} · {r.ativo_id?(inventoryAssets.find(a=>a.id===r.ativo_id)?.codigo||'Ativo associado'):r.componente_id?(inventoryComponents.find(c=>c.id===r.componente_id)?.codigo||'Componente associado'):'Âmbito geral'}</small></span><div style={{display:'flex',gap:5,flexWrap:'wrap'}}>{r.ativa&&<button className="primary" onClick={async()=>{const {data,error}=await supabase.rpc('ativus_criar_inspecao_periodica',{p_regra_id:r.id});if(error)setError(error.message);else{setMessage('Inspeção periódica criada.');await loadOperationalData();}}}>Gerar inspeção</button>}<button className="secondary" onClick={async()=>{const {error}=await supabase.from('regras_inspecao_periodica').update({ativa:!r.ativa}).eq('id',r.id);if(error)setError(error.message);else{setMessage(r.ativa?'Regra desativada.':'Regra ativada.');await loadOperationalData();}}}>{r.ativa?'Desativar':'Ativar'}</button></div></div>)}
