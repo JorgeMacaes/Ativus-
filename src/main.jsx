@@ -11,6 +11,7 @@ import Occurrences from './Occurrences.jsx';
 import PathologiesLive from './PathologiesLive.jsx';
 import PublicOccurrence from './PublicOccurrence.jsx';
 import TechnicalDocuments from './TechnicalDocuments.jsx';
+import Monitoring from './Monitoring.jsx';
 
 const seedProjects=[
  {id:'EMP-0001',name:'Edifício Rua Central',location:'Porto',type:'Edifício multifamiliar',status:'Em curso',description:'Empreendimento de demonstração'}
@@ -86,7 +87,7 @@ function App(){
    {view==='occurrences'&&<Occurrences/>}
    {view==='pathologies'&&<PathologiesLive/>}
    {view==='agenda'&&<Agenda inspections={inspections} pathologies={pathologies}/>}
-   {view==='monitoring'&&<Module icon={Activity} title="Sistemas de Monitorização" text="Instrumentação e aquisição de dados para deslocamentos, velocidade de corrosão e outros sensores."/>}
+   {view==='monitoring'&&<Monitoring/>}
    {view==='documents'&&<TechnicalDocuments/>}
    {view==='settings'&&<Parametrization materials={materials} setMaterials={v=>setMaterials(save('ativus_materials',v))} relations={relations} tab={paramTab} setTab={setParamTab}/>}
   </main>
