@@ -34,7 +34,7 @@ export default function PathologiesLive(){
    const priority=selected.gravidade>=5?'critica':selected.gravidade>=4?'alta':selected.gravidade>=3?'moderada':'baixa';
    const description=['Intervenção corretiva associada à patologia '+selected.codigo,selected.tipo,selected.caracterizacao,selected.causa?'Causa: '+selected.causa:null,selected.consequencia?'Consequência: '+selected.consequencia:null].filter(Boolean).join(' — ');
    const code='OT-'+new Date().toISOString().replace(/[-:T.Z]/g,'').slice(0,14);
-   const {data,error:e}=await supabase.from('trabalhos').insert({empreendimento_id:selected.empreendimento_id,patologia_id:selected.id,ativo_id:selected.ativo_id||null,componente_id:selected.componente_id||null,codigo:code,descricao:description,tipo:'corretivo',prioridade:priority,estado:'por_planear',origem_planeamento:'patologia',criado_por:u.user.id}).select('id,codigo').single();
+   const {data,error:e}=await supabase.from('trabalhos').insert({entidade_id:selected.entidade_id,empreendimento_id:selected.empreendimento_id||null,patologia_id:selected.id,ativo_id:selected.ativo_id||null,componente_id:selected.componente_id||null,codigo:code,descricao:description,tipo:'corretivo',prioridade:priority,estado:'por_planear',origem_planeamento:'patologia',criado_por:u.user.id}).select('id,codigo').single();
    if(e)throw e;
    setMessage('Ordem '+data.codigo+' criada e associada à patologia.');await load();
   }catch(e){setError(e.message||'Não foi possível criar a ordem de trabalho.');}
