@@ -40,6 +40,19 @@ export default function AtivusInventory({onOpenAI=()=>{}}){
   if(e){setError('Ativo aberto, mas não foi possível carregar os componentes: '+e.message);return;}
   const all=data||[];const ids=new Set(all.filter(x=>x.ativo_id===asset.id).map(x=>x.id));let changed=true;while(changed){changed=false;all.forEach(x=>{if(x.componente_pai_id&&ids.has(x.componente_pai_id)&&!ids.has(x.id)){ids.add(x.id);changed=true;}});}setComponents(all.filter(x=>ids.has(x.id)));
  };
+ const addComponent=async e=>{
+  e.preventDefault();if(!selected)return;setSaving(true);setError('');setMessage('');
+  try{
+   const {data:userData,error:userError}=await supabase.auth.getUser();if(userError)throw userError;
+   if(!userData?.user)throw new Error('A sessão expirou. Inicia sessão novamente.');
+   if(componentForm.tipo==='subcomponente'&&!componentForm.componente_pai_id)throw new Error('Seleciona o componente principal.');
+   const code='CMP-'+Date.now().toString().slice(-9);
+   const payload={entidade_id:selected.entidade_id,empreendimento_id:selected.empreendimento_id||null,ativo_id:componentForm.tipo==='componente'?selected.id:null,componente_pai_id:componentForm.tipo==='subcomponente'?componentForm.componente_pai_id:null,codigo:code,nome:componentForm.nome.trim(),tipo:componentForm.tipo,criado_por:userData.user.id};
+   const {data,error:e}=await supabase.from('componentes').insert(payload).select('id,entidade_id,empreendimento_id,codigo,nome,tipo,ativo_id,componente_pai_id').single();
+   if(e)throw e;setComponents(v=>[...v,data]);setComponentOpen(false);setComponentForm({tipo:'componente',nome:'',componente_pai_id:''});setMessage('Elemento guardado na estrutura do ativo.');
+  }catch(e){setError(e?.message||'Não foi possível guardar o elemento.');}
+  finally{setSaving(false);}
+ };
  const submit=async e=>{
   e.preventDefault();setSaving(true);setError('');setMessage('');
   try{
