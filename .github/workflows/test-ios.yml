@@ -28,6 +28,28 @@ jobs:
         run: npx cap add ios
       - name: Sincronizar Capacitor
         run: npx cap sync ios
+      - name: Aplicar ícone Seven M Ativus
+        run: |
+          sudo apt-get update && sudo apt-get install -y imagemagick
+          ICON_DIR="ios/App/App/Assets.xcassets/AppIcon.appiconset"
+          mkdir -p "$ICON_DIR"
+          convert public/ativus-icon.svg -background none -resize 1024x1024 "$ICON_DIR/AppIcon.png"
+          cat > "$ICON_DIR/Contents.json" <<'EOF'
+          {
+            "images": [
+              {
+                "filename": "AppIcon.png",
+                "idiom": "universal",
+                "platform": "ios",
+                "size": "1024x1024"
+              }
+            ],
+            "info": {
+              "author": "xcode",
+              "version": 1
+            }
+          }
+          EOF
       - name: Compilar para simulador iOS
         run: |
           xcodebuild -workspace ios/App/App.xcworkspace \
