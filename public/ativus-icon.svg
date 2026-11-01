@@ -1,6 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
-<defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#315d54"/><stop offset="1" stop-color="#173f3a"/></linearGradient></defs>
-<rect width="1024" height="1024" rx="210" fill="url(#bg)"/>
-<text x="512" y="580" text-anchor="middle" fill="#ffffff" font-family="Arial,Helvetica,sans-serif" font-size="180" font-weight="700" letter-spacing="8">ATIVUS</text>
-<path d="M260 670 H764" stroke="#d8b65b" stroke-width="16" stroke-linecap="round"/>
+<rect width="1024" height="1024" fill="#ffffff"/>
+<g font-family="Arial,Helvetica,sans-serif" font-weight="700" text-anchor="middle">
+ <text x="512" y="548" font-size="190" letter-spacing="-5">
+  <tspan fill="#075536">ATIV</tspan><tspan fill="#D9A51C">U</tspan><tspan fill="#075536">S</tspan>
+ </text>
+</g>
+<g text-anchor="end" font-family="Arial,Helvetica,sans-serif">
+ <text x="889" y="802" fill="#075536" font-size="30" font-style="italic">Powered by</text>
+ <text x="889" y="857" fill="#075536" font-size="49" font-weight="700" letter-spacing="2">SEVEN</text>
+</g>
+<path d="M907 814 L907 864 M907 864 L951 864 L951 814 M907 864 L929 840 L951 864" fill="none" stroke="#D9A51C" stroke-width="8" stroke-linejoin="miter"/>
 </svg>
