@@ -20,8 +20,10 @@ jobs:
         run: xcodebuild -version
       - name: Instalar dependências
         run: npm install --legacy-peer-deps
-      - name: Compilar aplicação web
+      - name: Compilar aplicação web para Capacitor
         run: npm run build
+        env:
+          BUILD_TARGET: ios
       - name: Adicionar plataforma iOS
         run: npx cap add ios
       - name: Sincronizar Capacitor
