@@ -6,6 +6,7 @@ import { backendConfigured, supabase } from './lib/supabase.js';
 import CRMCompanies from './CRMCompanies.jsx';
 import AtivusProjects from './AtivusProjects.jsx';
 import AtivusInventory from './AtivusInventory.jsx';
+import AtivusDashboard from './AtivusDashboard.jsx';
 import AtivusAI from './AtivusAI.jsx';
 import LiveInspections from './Inspections.jsx';
 import Occurrences from './Occurrences.jsx';
@@ -81,7 +82,7 @@ function App(){
      <p style={{fontSize:11,color:'#708396',marginTop:14}}>Os registos desta versão continuam guardados localmente neste navegador.</p>
     </form>
    </div>}
-   {view==='dashboard'&&<Dashboard assets={assets} inspections={inspections} pathologies={pathologies} onAssets={()=>go('assets')}/> }
+   {view==='dashboard'&&<AtivusDashboard onAssets={()=>go('assets')}/>}
    {view==='assets'&&<AtivusInventory onOpenAI={()=>setView('ativus-ai')} />}
    {view==='asset'&&current&&<AssetDetail asset={current} inspections={inspections} pathologies={pathologies} onBack={()=>go('assets')} onNewInspection={()=>addInspection(current.id)} onNewPathology={addPathology}/>}
    {view==='inspections'&&<LiveInspections/>}
