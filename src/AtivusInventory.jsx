@@ -36,7 +36,7 @@ export default function AtivusInventory({onOpenAI=()=>{}}){
  const projectName=id=>projects.find(x=>x.id===id)?.nome||'Sem empreendimento';
  const openAsset=async asset=>{
   setSelected(asset);setComponents([]);setError('');
-  const {data,error:e}=await supabase.from('componentes').select('id,codigo,nome,tipo,ativo_id,componente_pai_id').eq('ativo_id',asset.id).order('nome');
+  const {data,error:e}=await supabase.from('componentes').select('id,entidade_id,empreendimento_id,codigo,nome,tipo,ativo_id,componente_pai_id').eq('entidade_id',asset.entidade_id).order('nome');
   if(e){setError('Ativo aberto, mas não foi possível carregar os componentes: '+e.message);return;}
   setComponents(data||[]);
  };
@@ -50,7 +50,7 @@ export default function AtivusInventory({onOpenAI=()=>{}}){
    if(project&&project.entidade_id!==form.entidade_id)throw new Error('O empreendimento selecionado não pertence à entidade gestora escolhida.');
    const codigo='ATV-'+Date.now().toString().slice(-9);
    const payload={entidade_id:form.entidade_id,empreendimento_id:form.empreendimento_id||null,codigo,nome:form.nome.trim(),tipo:form.tipo,localizacao:form.morada.trim()||null,localizacao_detalhada:form.localizacao_detalhada.trim()||null,estado:'ativo',criado_por:userData.user.id};
-   const {data,error:insertError}=await supabase.from('ativos').insert(payload).select('id,entidade_id,empreendimento_id,codigo,nome,tipo,morada,estado,classe_ec,atributos,criado_em').single();
+   const {data,error:insertError}=await supabase.from('ativos').insert(payload).select('id,entidade_id,empreendimento_id,codigo,nome,tipo,localizacao,localizacao_detalhada,estado,classe_estado_conservacao,descricao,criado_em').single();
    if(insertError)throw insertError;
    setAssets(v=>[data,...v]);setForm({entidade_id:form.entidade_id,empreendimento_id:'',nome:'',tipo:TYPES[0],morada:'',localizacao_detalhada:''});setFormOpen(false);setMessage('Ativo criado e guardado no inventário partilhado.');
   }catch(e){setError(e?.message||'Não foi possível criar o ativo.');}
