@@ -30,7 +30,7 @@ jobs:
         run: npx cap add ios
       - name: Sincronizar Capacitor
         run: npx cap sync ios
-      - name: Aplicar ícone Seven M Ativus
+      - name: Aplicar ícone oficial ATIVUS
         run: |
           brew install imagemagick
           ICON_DIR="ios/App/App/Assets.xcassets/AppIcon.appiconset"
@@ -63,6 +63,6 @@ jobs:
       - name: Guardar aplicação de simulador
         uses: actions/upload-artifact@v4
         with:
-          name: seven-m-ativus-ios-simulator
+          name: ativus-ios-simulator
           path: ios/build/Build/Products/Debug-iphonesimulator/App.app
           if-no-files-found: error
