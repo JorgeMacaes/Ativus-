@@ -238,3 +238,57 @@ A migração só pode ser considerada aprovada quando:
 A consulta ao projeto Supabase confirmou que não existe atualmente nenhuma branch de desenvolvimento de base de dados. A lista de migrações existentes foi consultada e inclui migrações recentes de inventário, IA, manutenção, documentos e monitorização. Não foi criada uma branch, porque a criação pode ter custo recorrente e exige confirmação do custo antes de avançar.
 
 Consequentemente, o próximo bloqueio operacional é obter autorização informada para criar uma branch de desenvolvimento Supabase, depois de apresentar o custo indicado pela organização. Até lá, a preparação permanece documental e de leitura.
+
+
+## 15. Auditoria de dependências — atualização de 01-11-2026
+
+Consulta adicional, apenas de leitura, ao projeto Supabase de produção.
+
+### 15.1 Funções SQL
+
+Foram encontradas 27 funções públicas cujo código contém referências a `empreendimento`, incluindo:
+- 12 funções de operações de manutenção, inspeção, patologia, trabalhos, indicadores e relatórios;
+- 12 funções do módulo de IA e conhecimento;
+- a função de autorização `user_can_access_empreendimento`;
+- funções de histórico e equipa.
+
+A lista inclui, entre outras, `ai_criar_snapshot_inventario`, `ai_publicar_elemento_proposto`, `ativus_atualizar_progresso_trabalho`, `ativus_decidir_trabalho`, `ativus_submeter_trabalho_aprovacao` e `ativus_gerar_proxima_manutencao`. As assinaturas e corpos integrais devem ser novamente extraídos para o pacote de migração; esta contagem é um inventário de dependências, não uma autorização para substituir funções.
+
+### 15.2 Chaves estrangeiras diretas
+
+Foram confirmadas 15 referências com chave estrangeira para `empreendimentos.id`, todas com regra `ON DELETE CASCADE`:
+`ai_levantamentos`, `ativos`, `componentes`, `dispositivos_monitorizacao`, `documentos_tecnicos`, `indicadores_manutencao`, `inspecoes`, `manutencao_agendamentos`, `ocorrencias`, `orcamentos_manutencao`, `patologias`, `planos_manutencao`, `regras_inspecao_periodica`, `trabalho_historico` e `trabalhos`.
+
+**Implicação crítica:** não se pode apagar ou esvaziar `empreendimentos` enquanto estas referências não tiverem sido migradas e verificadas. Uma eliminação prematura pode propagar cascatas e apagar dados operacionais e históricos.
+
+### 15.3 Políticas RLS
+
+A consulta confirmou dependências de `user_can_access_empreendimento` em políticas de:
+- ativos e componentes;
+- inspeções, itens e registos;
+- ocorrências e patologias;
+- trabalhos, execuções, recursos, histórico e dependências;
+- planos e agendamentos de manutenção;
+- documentos técnicos e monitorização;
+- indicadores e múltiplas tabelas de IA.
+
+As políticas do módulo de IA herdam frequentemente a autorização através de `ai_levantamentos.empreendimento_id`. A migração tem de redesenhar esta cadeia de autorização por entidade sem abrir acesso transversal.
+
+### 15.4 Edge Functions ativas
+
+Foram enumeradas 10 funções ativas:
+`fornecedor-portal`, `public-occurrence`, `ativus-knowledge-discovery`, `ativus-knowledge-analyzer`, `ativus-knowledge-publisher`, `ativus-knowledge-relator`, `ativus-ai-inventory-analyzer`, `ativus-member-invite` e `ativus-sensor-ingest` (a listagem devolveu 10 entradas; a enumeração nominal deve ser reconciliada com os metadados completos antes da migração).
+
+A `public-occurrence` continua a ser uma dependência crítica: JWT está desativado para permitir submissão pública por QR. A adaptação deve validar token, estado do ativo e entidade no servidor e preservar a associação ao nó exato. As restantes funções também precisam de revisão individual do código, mesmo quando o nome não sugere dependência do inventário.
+
+### 15.5 Triggers confirmados
+
+Foram confirmados triggers de validação de conclusão de inspeção, auditoria de estado de trabalho, agregação de orçamento e histórico de trabalho. O trigger de histórico grava `empreendimento_id`; terá de ser adaptado sem quebrar o caráter append-only e a rastreabilidade.
+
+### 15.6 Resultado desta atualização
+
+- A auditoria confirma dependências diretas e indiretas mais extensas do que as visíveis nos ecrãs.
+- As 15 FKs diretas com `ON DELETE CASCADE` tornam a fase de contração especialmente sensível.
+- Não foi executado qualquer `ALTER`, `UPDATE`, `DELETE`, migração, publicação de Edge Function ou alteração de política.
+- Não foi criada branch Supabase nem alterada a aplicação publicada.
+- Próxima atividade segura: obter código integral das Edge Functions e completar o inventário de FKs indiretas, triggers, políticas de Storage e funções de autorização, antes de desenhar o plano SQL de execução.
