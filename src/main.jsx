@@ -45,8 +45,6 @@ function App(){
  const [relations,setRelations]=useState(()=>load('ativus_relations',seedRelations));
  const [view,setView]=useState('dashboard'),[selected,setSelected]=useState(null),[menu,setMenu]=useState(false),[query,setQuery]=useState('');
  const [paramTab,setParamTab]=useState('relations');
- const [projectFormOpen,setProjectFormOpen]=useState(false);
- const [projectForm,setProjectForm]=useState({name:'',location:'',type:'',description:''});
  const [projectError,setProjectError]=useState('');
  const filtered=useMemo(()=>assets.filter(a=>(a.name+' '+a.location+' '+a.id).toLowerCase().includes(query.toLowerCase())),[assets,query]);
  const current=selected?assets.find(a=>a.id===selected):null;
