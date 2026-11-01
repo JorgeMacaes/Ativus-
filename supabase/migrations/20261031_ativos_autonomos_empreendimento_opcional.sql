@@ -6,14 +6,14 @@ language sql
 stable
 security definer
 set search_path = public
-as $
+as $fn$
   select
     exists (select 1 from public.administradores_plataforma ap where ap.utilizador_id=auth.uid())
     or exists (
       select 1 from public.membros_entidade m
       where m.entidade_id=p_entidade_id and m.utilizador_id=auth.uid() and m.ativo=true
     );
-$;
+$fn$;
 
 create or replace function public.user_has_entity_role(p_entidade_id uuid,p_roles text[])
 returns boolean
@@ -21,7 +21,7 @@ language sql
 stable
 security definer
 set search_path = public
-as $
+as $fn$
   select
     exists (select 1 from public.administradores_plataforma ap where ap.utilizador_id=auth.uid())
     or exists (
@@ -29,7 +29,7 @@ as $
       where m.entidade_id=p_entidade_id and m.utilizador_id=auth.uid()
         and m.ativo=true and m.perfil=any(p_roles)
     );
-$;
+$fn$;
 
 revoke all on function public.user_can_access_entity(uuid) from public, anon;
 revoke all on function public.user_has_entity_role(uuid,text[]) from public, anon;
