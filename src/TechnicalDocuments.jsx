@@ -14,10 +14,10 @@ export default function TechnicalDocuments(){
   try{
    if(file.size>250*1024*1024)throw new Error('O ficheiro excede o limite de 250 MB.');
    if(form.ativo_id&&!assets.some(x=>x.id===form.ativo_id))throw new Error('O ativo selecionado não pertence à Entidade Gestora selecionada.');
-   if(form.componente_id&&!components.some(x=>x.id===form.componente_id))throw new Error('O componente selecionado não pertence ao empreendimento atual.');
-   if(form.inspecao_id&&!inspections.some(x=>x.id===form.inspecao_id))throw new Error('A inspeção selecionada não pertence ao empreendimento atual.');
-   if(form.patologia_id&&!pathologies.some(x=>x.id===form.patologia_id))throw new Error('A patologia selecionada não pertence ao empreendimento atual.');
-   if(form.trabalho_id&&!works.some(x=>x.id===form.trabalho_id))throw new Error('A ordem de trabalho selecionada não pertence ao empreendimento atual.');
+   if(form.componente_id&&!components.some(x=>x.id===form.componente_id))throw new Error('O componente selecionado não pertence à Entidade Gestora selecionada.');
+   if(form.inspecao_id&&!inspections.some(x=>x.id===form.inspecao_id))throw new Error('A inspeção selecionada não pertence à Entidade Gestora selecionada.');
+   if(form.patologia_id&&!pathologies.some(x=>x.id===form.patologia_id))throw new Error('A patologia selecionada não pertence à Entidade Gestora selecionada.');
+   if(form.trabalho_id&&!works.some(x=>x.id===form.trabalho_id))throw new Error('A ordem de trabalho selecionada não pertence à Entidade Gestora selecionada.');
    const {data:u,error:ue}=await supabase.auth.getUser();if(ue)throw ue;if(!u?.user)throw new Error('Inicia sessão para consultar a documentação.');
    const {data:m,error:me}=await supabase.from('membros_entidade').select('entidade_id').eq('utilizador_id',u.user.id).eq('ativo',true);if(me)throw me;
    const ids=[...new Set((m||[]).map(x=>x.entidade_id))];if(!ids.length)throw new Error('Não existem entidades associadas à conta.');
@@ -31,7 +31,7 @@ export default function TechnicalDocuments(){
  const loadInventory=async id=>{
   setForm(v=>({...v,entidade_id:id,empreendimento_id:null,ativo_id:'',componente_id:'',inspecao_id:'',patologia_id:'',trabalho_id:''}));
   if(!id){setAssets([]);setComponents([]);setInspections([]);setPathologies([]);setWorks([]);return}
-  const [a,c,i,p,w]=await Promise.all([supabase.from('ativos').select('id,codigo,nome').eq('entidade_id',id).order('nome'),supabase.from('componentes').select('id,codigo,nome,ativo_id').eq('empreendimento_id',id).order('nome'),supabase.from('inspecoes').select('id,codigo,tipo,data_inspecao').eq('empreendimento_id',id).order('data_inspecao',{ascending:false}),supabase.from('patologias').select('id,codigo,tipo,caracterizacao').eq('empreendimento_id',id).order('identificada_em',{ascending:false}),supabase.from('trabalhos').select('id,codigo,descricao,estado').eq('empreendimento_id',id).order('criado_em',{ascending:false})]);
+  const [a,c,i,p,w]=await Promise.all([supabase.from('ativos').select('id,codigo,nome').eq('entidade_id',id).order('nome'),supabase.from('componentes').select('id,codigo,nome,ativo_id').eq('entidade_id',id).order('nome'),supabase.from('inspecoes').select('id,codigo,tipo,data_inspecao').eq('entidade_id',id).order('data_inspecao',{ascending:false}),supabase.from('patologias').select('id,codigo,tipo,caracterizacao').eq('entidade_id',id).order('identificada_em',{ascending:false}),supabase.from('trabalhos').select('id,codigo,descricao,estado').eq('entidade_id',id).order('criado_em',{ascending:false})]);
   const failure=[a,c,i,p,w].find(x=>x.error);if(failure){setError(failure.error.message);return}
   setAssets(a.data||[]);setComponents(c.data||[]);setInspections(i.data||[]);setPathologies(p.data||[]);setWorks(w.data||[]);
  };
