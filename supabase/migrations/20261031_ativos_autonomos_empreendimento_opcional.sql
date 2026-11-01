@@ -1,4 +1,41 @@
 -- ATIVUS — ativos autónomos e componentes ligados diretamente ao ativo
+-- Helper functions evaluate membership without triggering recursive RLS.
+create or replace function public.user_can_access_entity(p_entidade_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $
+  select
+    exists (select 1 from public.administradores_plataforma ap where ap.utilizador_id=auth.uid())
+    or exists (
+      select 1 from public.membros_entidade m
+      where m.entidade_id=p_entidade_id and m.utilizador_id=auth.uid() and m.ativo=true
+    );
+$;
+
+create or replace function public.user_has_entity_role(p_entidade_id uuid,p_roles text[])
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $
+  select
+    exists (select 1 from public.administradores_plataforma ap where ap.utilizador_id=auth.uid())
+    or exists (
+      select 1 from public.membros_entidade m
+      where m.entidade_id=p_entidade_id and m.utilizador_id=auth.uid()
+        and m.ativo=true and m.perfil=any(p_roles)
+    );
+$;
+
+revoke all on function public.user_can_access_entity(uuid) from public, anon;
+revoke all on function public.user_has_entity_role(uuid,text[]) from public, anon;
+grant execute on function public.user_can_access_entity(uuid) to authenticated;
+grant execute on function public.user_has_entity_role(uuid,text[]) to authenticated;
+
 -- Preserva os registos e as associações existentes.
 -- Os registos antigos recebem a entidade gestora do empreendimento atual;
 -- o empreendimento_id original não é alterado.
@@ -86,23 +123,23 @@ drop policy if exists ativus_ativos_delete on public.ativos;
 
 create policy ativus_ativos_select
 on public.ativos for select to authenticated
-using (public.utilizador_tem_perfil(entidade_id,array['administrador','gestor','tecnico','consulta']::text[]));
+using (public.user_can_access_entity(entidade_id));
 
 create policy ativus_ativos_insert
 on public.ativos for insert to authenticated
 with check (
-  public.utilizador_tem_perfil(entidade_id,array['administrador','gestor']::text[])
+  public.user_has_entity_role(entidade_id,array['administrador','gestor']::text[])
   and (criado_por is null or criado_por=auth.uid())
 );
 
 create policy ativus_ativos_update
 on public.ativos for update to authenticated
-using (public.utilizador_tem_perfil(entidade_id,array['administrador','gestor']::text[]))
-with check (public.utilizador_tem_perfil(entidade_id,array['administrador','gestor']::text[]));
+using (public.user_has_entity_role(entidade_id,array['administrador','gestor']::text[]))
+with check (public.user_has_entity_role(entidade_id,array['administrador','gestor']::text[]));
 
 create policy ativus_ativos_delete
 on public.ativos for delete to authenticated
-using (public.utilizador_tem_perfil(entidade_id,array['administrador']::text[]));
+using (public.user_has_entity_role(entidade_id,array['administrador']::text[]));
 
 drop policy if exists ativus_componentes_select on public.componentes;
 drop policy if exists ativus_componentes_insert on public.componentes;
@@ -111,23 +148,23 @@ drop policy if exists ativus_componentes_delete on public.componentes;
 
 create policy ativus_componentes_select
 on public.componentes for select to authenticated
-using (public.utilizador_tem_perfil(entidade_id,array['administrador','gestor','tecnico','consulta']::text[]));
+using (public.user_can_access_entity(entidade_id));
 
 create policy ativus_componentes_insert
 on public.componentes for insert to authenticated
 with check (
-  public.utilizador_tem_perfil(entidade_id,array['administrador','gestor','tecnico']::text[])
+  public.user_has_entity_role(entidade_id,array['administrador','gestor','tecnico']::text[])
   and (criado_por is null or criado_por=auth.uid())
 );
 
 create policy ativus_componentes_update
 on public.componentes for update to authenticated
-using (public.utilizador_tem_perfil(entidade_id,array['administrador','gestor','tecnico']::text[]))
-with check (public.utilizador_tem_perfil(entidade_id,array['administrador','gestor','tecnico']::text[]));
+using (public.user_has_entity_role(entidade_id,array['administrador','gestor','tecnico']::text[]))
+with check (public.user_has_entity_role(entidade_id,array['administrador','gestor','tecnico']::text[]));
 
 create policy ativus_componentes_delete
 on public.componentes for delete to authenticated
-using (public.utilizador_tem_perfil(entidade_id,array['administrador','gestor']::text[]));
+using (public.user_has_entity_role(entidade_id,array['administrador','gestor']::text[]));
 
 comment on column public.ativos.empreendimento_id is
   'Associação opcional a um empreendimento/agrupamento. A entidade gestora é sempre obrigatória.';
