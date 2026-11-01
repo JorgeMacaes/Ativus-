@@ -41,7 +41,7 @@ jobs:
         run: npx cap sync android
       - name: Instalar ferramenta de imagem
         run: sudo apt-get update && sudo apt-get install -y imagemagick
-      - name: Aplicar ícone Seven M Ativus (incluindo ícone adaptativo)
+      - name: Aplicar ícone oficial ATIVUS (incluindo ícone adaptativo)
         run: |
           for spec in "mdpi:48:108" "hdpi:72:162" "xhdpi:96:216" "xxhdpi:144:324" "xxxhdpi:192:432"; do
             density=${spec%%:*}
@@ -67,7 +67,7 @@ jobs:
           cat > android/app/src/main/res/values/ativus_icon_colors.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
-            <color name="ativus_icon_background">#315D54</color>
+            <color name="ativus_icon_background">#FFFFFF</color>
           </resources>
           EOF
       - name: Gerar APK de depuração
@@ -78,6 +78,6 @@ jobs:
       - name: Guardar APK como artefacto de teste
         uses: actions/upload-artifact@v4
         with:
-          name: seven-m-ativus-debug-apk
+          name: ativus-android-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
