@@ -40,9 +40,9 @@ export default function Inspections(){
  const ecValues=records.map(x=>x.classe_estado_conservacao).filter(x=>x!==null&&x!==undefined);
  const ecMax=ecValues.length?Math.max(...ecValues):null,ecMean=ecValues.length?(ecValues.reduce((a,b)=>a+b,0)/ecValues.length).toFixed(1):'—';
  const openNew=()=>{const entityId=entities.length===1?entities[0].id:'';setForm({...blankForm(),entidade_id:entityId});setFormOpen(true);setError('');setMessage('');};
- const loadInventory=async enterpriseId=>{
-  if(!enterpriseId){setAssets([]);return}
-  const {data,error:e}=await supabase.from('ativos').select('id,codigo,nome,tipo,localizacao,empreendimento_id').eq('empreendimento_id',enterpriseId).order('nome');
+ const loadInventory=async entityId=>{
+  if(!entityId){setAssets([]);return}
+  const {data,error:e}=await supabase.from('ativos').select('id,entidade_id,codigo,nome,tipo,localizacao,empreendimento_id').eq('entidade_id',entityId).order('nome');
   if(e)throw e;setAssets(data||[]);
  };
  const makeSnapshot=(asset,allComponents,inspectionId)=>{
@@ -75,7 +75,7 @@ export default function Inspections(){
   const [iRes,rRes,cRes,aRes,pRes]=await Promise.all([
    supabase.from('inspecao_itens').select(itemSelect).eq('inspecao_id',row.id).order('ordem'),
    supabase.from('inspecao_registos').select(recordSelect).eq('inspecao_id',row.id).order('criado_em'),
-   supabase.from('componentes').select('id,codigo,nome,tipo,ativo_id,componente_pai_id,localizacao,empreendimento_id').eq('empreendimento_id',row.empreendimento_id),
+   supabase.from('componentes').select('id,codigo,nome,tipo,ativo_id,componente_pai_id,localizacao,empreendimento_id').eq('entidade_id',row.entidade_id),
    supabase.from('ativos').select('id,codigo,nome,tipo,localizacao,empreendimento_id').eq('empreendimento_id',row.empreendimento_id),
    supabase.from('patologias').select('id,codigo,inspecao_id,ativo_id,componente_id,tipo,estado').eq('inspecao_id',row.id)
   ]);
