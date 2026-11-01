@@ -5,6 +5,7 @@ import './styles.css';
 import { backendConfigured, supabase } from './lib/supabase.js';
 import CRMCompanies from './CRMCompanies.jsx';
 import AtivusProjects from './AtivusProjects.jsx';
+import AtivusInventory from './AtivusInventory.jsx';
 import AtivusAI from './AtivusAI.jsx';
 import LiveInspections from './Inspections.jsx';
 import Occurrences from './Occurrences.jsx';
@@ -53,7 +54,7 @@ function App(){
  const [projectError,setProjectError]=useState('');
  const filtered=useMemo(()=>assets.filter(a=>(a.name+' '+a.location+' '+a.id).toLowerCase().includes(query.toLowerCase())),[assets,query]);
  const current=selected?assets.find(a=>a.id===selected):null;
- const nav=[['dashboard','Dashboard',LayoutDashboard],['projects','Empreendimentos',Building2],['assets','Ativos / Inventário',Building2],['inspections','Inspeções',ClipboardCheck],['occurrences','Ocorrências',ClipboardList],['pathologies','Patologias',AlertTriangle],['agenda','Agenda',CalendarDays],['monitoring','Sistemas de Monitorização',Activity],['documents','Documentação',FileText],['ativus-ai','Ativus AI · Inventário Inteligente',Brain],['crm','CRM · Clientes e Contactos',ContactRound],['suppliers','Fornecedores e Licenças',Truck],['settings','Parametrização',Settings]];
+ const nav=[['dashboard','Dashboard',LayoutDashboard],['projects','Empreendimentos',Building2],['assets','Ativos / Inventário',Building2],['inspections','Inspeções',ClipboardCheck],['occurrences','Ocorrências',ClipboardList],['pathologies','Patologias',AlertTriangle],['agenda','Agenda',CalendarDays],['monitoring','Sistemas de Monitorização',Activity],['documents','Documentação',FileText],['crm','CRM · Clientes e Contactos',ContactRound],['suppliers','Fornecedores e Licenças',Truck],['settings','Parametrização',Settings]];
  const go=id=>{setView(id);setMenu(false);if(id!=='asset')setSelected(null);if(id!=='project')setSelectedProject(null)};
  const addAsset=()=>{const name=window.prompt('Nome do ativo:');if(!name||!name.trim())return;const n=Math.max(0,...assets.map(a=>Number(String(a.id).replace(/\\D/g,''))||0))+1,a={id:'ATV-'+String(n).padStart(4,'0'),name:name.trim(),type:'Edifício residencial',location:'Por definir',status:'Ativo',ec:0,maintenance:'Bom',components:0,pathologies:0};const next=[a,...assets];setAssets(save('ativus_assets',next));setSelected(a.id);setView('asset')};
  const addInspection=asset=>{const n=inspections.length+1,i={id:'INS-'+String(n).padStart(4,'0'),asset,type:'Rotina',date:new Date().toISOString().slice(0,10),inspector:'Utilizador atual',ec:null,maintenance:'Bom',pathologies:0};setInspections(save('ativus_inspections',[i,...inspections]))};
@@ -65,7 +66,7 @@ function App(){
   </aside>
   <main className="main"><header><button className="hamb" onClick={()=>setMenu(true)}><Menu/></button><div className="page-heading"><img className="header-brand-logo" src={import.meta.env.BASE_URL+'ativus-wordmark.svg'} alt="ATIVUS"/><h1>{view==='dashboard'?'Dashboard':view==='projects'?'Empreendimentos':view==='project'?selectedProject?.name||'Empreendimento':view==='assets'?'Ativos / Inventário':view==='asset'?current?.name||'Ativo':nav.find(x=>x[0]===view)?.[1]||'Ativus'}</h1></div><div className="header-actions"><div className={backendConfigured ? "sync backend-ready" : "sync"}>{backendConfigured ? "● Backend configurado" : "● Demonstração local"}</div><div className="user">JM</div></div></header>
    {view==='crm'&&<CRM />}
-   {view==='ativus-ai'&&<AtivusAI />}
+   {view==='ativus-ai'&&<AtivusAI onBack={()=>go('assets')} />}
    {view==='suppliers'&&<Suppliers />}
    {(view==='projects'||view==='project')&&<AtivusProjects/>}
    {projectFormOpen&&<div role="presentation" onClick={()=>setProjectFormOpen(false)} style={{position:'fixed',inset:0,zIndex:2000,background:'rgba(10,28,44,.58)',display:'grid',placeItems:'center',padding:18}}>
@@ -80,8 +81,8 @@ function App(){
      <p style={{fontSize:11,color:'#708396',marginTop:14}}>Os registos desta versão continuam guardados localmente neste navegador.</p>
     </form>
    </div>}
-   {view==='dashboard'&&<Dashboard assets={assets} inspections={inspections} pathologies={pathologies} onAssets={()=>go('assets')} onNew={addAsset}/>}
-   {view==='assets'&&<Assets assets={filtered} query={query} setQuery={setQuery} onNew={addAsset} onOpen={id=>{setSelected(id);setView('asset')}}/>}
+   {view==='dashboard'&&<Dashboard assets={assets} inspections={inspections} pathologies={pathologies} onAssets={()=>go('assets')}/> }
+   {view==='assets'&&<AtivusInventory onOpenAI={()=>setView('ativus-ai')} />}
    {view==='asset'&&current&&<AssetDetail asset={current} inspections={inspections} pathologies={pathologies} onBack={()=>go('assets')} onNewInspection={()=>addInspection(current.id)} onNewPathology={addPathology}/>}
    {view==='inspections'&&<LiveInspections/>}
    {view==='occurrences'&&<Occurrences/>}
@@ -259,7 +260,7 @@ function Suppliers(){
   </div>}
  </section>;
 }
-function Dashboard({assets,inspections,pathologies,onAssets,onNew}){
+function Dashboard({assets,inspections,pathologies,onAssets}){
  const open=pathologies.filter(p=>!['Encerrada','Verificada'].includes(p.status)).length;
  const ecCounts=[0,1,2,3,4,5].map(ec=>({label:'EC '+ec,value:assets.filter(a=>Number(a.ec)===ec).length}));
  const severity=[{label:'Crítica · EC5',value:pathologies.filter(p=>Number(p.ec)===5).length},{label:'Alta · EC4',value:pathologies.filter(p=>Number(p.ec)===4).length},{label:'Moderada · EC3',value:pathologies.filter(p=>Number(p.ec)===3).length},{label:'Baixa · EC0–2',value:pathologies.filter(p=>Number(p.ec)<=2).length}];
@@ -267,7 +268,7 @@ function Dashboard({assets,inspections,pathologies,onAssets,onNew}){
  const maxEC=Math.max(1,...ecCounts.map(x=>x.value));
  const recent=inspections.slice().sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,4);
  return <section className="content">
-  <div className="hero"><div><span className="pill">Protótipo · dados locais</span><h2>Visão global dos ativos</h2><p>Indicadores visuais para acompanhar inventário, inspeções e anomalias. Os dados atuais são demonstrativos e guardados neste navegador.</p></div><button className="primary" onClick={onNew}><Plus size={18}/> Novo Ativo</button></div>
+  <div className="hero"><div><span className="pill">Dashboard · visão geral</span><h2>Visão global dos ativos</h2><p>Indicadores de acompanhamento do inventário, inspeções e anomalias. Para registar um ativo, utiliza o módulo Ativos / Inventário.</p></div></div>
   <div className="stats"><Stat icon={Building2} label="Ativos registados" value={assets.length}/><Stat icon={ClipboardCheck} label="Inspeções registadas" value={inspections.length}/><Stat icon={AlertTriangle} label="Patologias por tratar" value={open}/><Stat icon={ShieldCheck} label="Ativos em EC5" value={assets.filter(a=>Number(a.ec)===5).length}/></div>
   <div className="dashgrid">
    <div className="panel chartpanel"><div className="panelhead"><div><h3>Estado de conservação dos ativos</h3><span>Distribuição por classe EC</span></div><span className="charttag">Inventário</span></div>
