@@ -31,3 +31,9 @@
 .page-heading{display:flex;flex-direction:column;align-items:flex-start;gap:3px}
 .header-brand-logo{display:block;width:142px;height:auto;max-height:40px;object-fit:contain;margin-bottom:2px}
 @media(max-width:480px){.brand-logo{width:160px}.header-brand-logo{width:116px;max-height:34px}}
+
+/* Brand hierarchy: ATIVUS product, Seven M institutional endorsement */
+.brand-logo{width:154px;max-width:100%;height:auto;display:block}
+.powered-by-logo{width:116px;height:auto;display:block;margin-top:15px;opacity:.9}
+.header-brand-logo{width:112px;height:auto;display:block;margin-right:14px}
+.page-heading{display:flex;align-items:center;min-width:0}
