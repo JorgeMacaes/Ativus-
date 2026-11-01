@@ -38,7 +38,7 @@ export default function AtivusInventory({onOpenAI=()=>{}}){
   setSelected(asset);setComponents([]);setError('');
   const {data,error:e}=await supabase.from('componentes').select('id,entidade_id,empreendimento_id,codigo,nome,tipo,ativo_id,componente_pai_id').eq('entidade_id',asset.entidade_id).order('nome');
   if(e){setError('Ativo aberto, mas não foi possível carregar os componentes: '+e.message);return;}
-  setComponents(data||[]);
+  const all=data||[];const ids=new Set(all.filter(x=>x.ativo_id===asset.id).map(x=>x.id));let changed=true;while(changed){changed=false;all.forEach(x=>{if(x.componente_pai_id&&ids.has(x.componente_pai_id)&&!ids.has(x.id)){ids.add(x.id);changed=true;}});}setComponents(all.filter(x=>ids.has(x.id)));
  };
  const submit=async e=>{
   e.preventDefault();setSaving(true);setError('');setMessage('');
