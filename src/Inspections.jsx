@@ -23,9 +23,11 @@ export default function Inspections(){
    const {data:userData,error:userError}=await supabase.auth.getUser();if(userError)throw userError;if(!userData?.user)throw new Error('Inicia sessão para consultar as inspeções.');
    const {data:members,error:memberError}=await supabase.from('membros_entidade').select('entidade_id').eq('utilizador_id',userData.user.id).eq('ativo',true);if(memberError)throw memberError;
    const ids=[...new Set((members||[]).map(x=>x.entidade_id))];if(!ids.length)throw new Error('A conta não tem entidades ativas associadas.');
-   const [entityRes,eRes,aRes,iRes]=await Promise.all([\n     supabase.from('entidades').select('id,nome').eq('ativa',true).in('id',ids).order('nome'),
+   const [entityRes,eRes,aRes,iRes]=await Promise.all([
+    supabase.from('entidades').select('id,nome').eq('ativa',true).in('id',ids).order('nome'),
     supabase.from('empreendimentos').select('id,nome,codigo,entidade_id').eq('ativo',true).in('entidade_id',ids).order('nome'),
-    supabase.from('inspecoes').select('id,empreendimento_id,codigo,tipo,data_inspecao,inspetor_nome,objetivo,observacoes,estado,criado_em').order('data_inspecao',{ascending:false})
+    supabase.from('ativos').select('id,entidade_id,empreendimento_id,codigo,nome,tipo,localizacao').in('entidade_id',ids).order('nome'),
+    supabase.from('inspecoes').select('id,entidade_id,ativo_id,empreendimento_id,codigo,tipo,data_inspecao,inspetor_nome,objetivo,observacoes,estado,criado_em').order('data_inspecao',{ascending:false})
    ]);
    if(entityRes.error)throw entityRes.error;if(eRes.error)throw eRes.error;if(aRes.error)throw aRes.error;if(iRes.error)throw iRes.error;setEntities(entityRes.data||[]);setEnterprises(eRes.data||[]);setAssets(aRes.data||[]);setRows(iRes.data||[]);
   }catch(e){setError(e?.message||'Não foi possível carregar as inspeções.')}finally{setLoading(false)}
