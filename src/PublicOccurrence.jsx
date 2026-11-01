@@ -20,7 +20,7 @@ export default function PublicOccurrence({token}){
  };
  return <main style={{minHeight:'100vh',background:'#f2f6fa',padding:'28px 16px',fontFamily:'Arial,sans-serif',boxSizing:'border-box'}}>
   <div style={{maxWidth:620,margin:'0 auto',background:'#fff',border:'1px solid #dce6ef',borderRadius:18,padding:24,boxSizing:'border-box',boxShadow:'0 12px 35px rgba(24,60,90,.08)'}}>
-   <div style={{fontSize:12,fontWeight:800,letterSpacing:2,color:'#1c6598'}}>SEVEN M ATIVUS</div>
+   <div style={{fontSize:12,fontWeight:800,letterSpacing:2,color:'#1c6598'}}>ATIVUS</div>
    <h1 style={{color:'#173b59',fontSize:25,margin:'12px 0 8px'}}>Comunicar uma ocorrência</h1>
    <p style={{color:'#52677a',lineHeight:1.5,marginTop:0}}>Descreva o que observou. Não precisa de conhecimentos técnicos nem de criar uma conta.</p>
    {result?<div style={{padding:18,borderRadius:12,background:'#edf8f2',color:'#176344',marginTop:20}}>
