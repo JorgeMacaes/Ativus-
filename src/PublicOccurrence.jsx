@@ -27,13 +27,13 @@ export default function PublicOccurrence({token}){
     <CheckCircle2 size={28}/><h2 style={{margin:'10px 0'}}>Comunicação recebida</h2>
     <p>Obrigado. A sua comunicação foi registada e será analisada pela equipa responsável.</p>
     <p style={{fontSize:18,fontWeight:800}}>N.º {result.code}</p>
-    <p style={{fontSize:13}}>Empreendimento: {result.enterprise}</p>
+    <p style={{fontSize:13}}>Local: {result.enterprise}</p>
    </div>:<form onSubmit={submit}>
     <label style={{display:'block',fontWeight:700,color:'#23415b',marginTop:18}}>Tipo de situação</label>
     <select style={field} value={form.category} onChange={e=>setForm(v=>({...v,category:e.target.value}))}>{categories.map(x=><option key={x}>{x}</option>)}</select>
     <label style={{display:'block',fontWeight:700,color:'#23415b',marginTop:16}}>O que aconteceu? *</label>
     <textarea required minLength={8} maxLength={4000} rows={5} style={field} value={form.description} onChange={e=>setForm(v=>({...v,description:e.target.value}))} placeholder="Descreva o que observou, onde e quando…"/>
-    <label style={{display:'block',fontWeight:700,color:'#23415b',marginTop:16}}>Localização dentro do empreendimento</label>
+    <label style={{display:'block',fontWeight:700,color:'#23415b',marginTop:16}}>Localização</label>
     <input maxLength={300} style={field} value={form.location} onChange={e=>setForm(v=>({...v,location:e.target.value}))} placeholder="Ex.: entrada principal, garagem, piso 2…"/>
     <label style={{display:'block',fontWeight:700,color:'#23415b',marginTop:16}}>A situação parece urgente?</label>
     <select style={field} value={form.urgency} onChange={e=>setForm(v=>({...v,urgency:e.target.value}))}><option value="nao_sei">Não sei avaliar</option><option value="normal">Não é urgente</option><option value="urgente">Sim, é urgente</option></select>
@@ -47,7 +47,7 @@ export default function PublicOccurrence({token}){
     {error&&<div role="alert" style={{marginTop:16,padding:12,borderRadius:9,background:'#fff1f0',color:'#9d2821',fontSize:13}}><AlertTriangle size={16}/> {error}</div>}
     <button type="submit" disabled={busy} style={{display:'flex',alignItems:'center',justifyContent:'center',gap:9,width:'100%',marginTop:22,padding:14,border:0,borderRadius:10,background:'#1d5f91',color:'#fff',fontSize:15,fontWeight:700,opacity:busy?.65:1}}><Send size={17}/>{busy?'A enviar…':'Enviar comunicação'}</button>
    </form>}
-   <p style={{fontSize:11,color:'#8192a1',lineHeight:1.5,marginTop:22}}>Este formulário serve para comunicar ocorrências ao gestor do empreendimento. Em caso de perigo imediato para pessoas, contacte os serviços de emergência.</p>
+   <p style={{fontSize:11,color:'#8192a1',lineHeight:1.5,marginTop:22}}>Este formulário serve para comunicar ocorrências à equipa de gestão do ativo. Em caso de perigo imediato para pessoas, contacte os serviços de emergência.</p>
   </div>
  </main>;
 }
