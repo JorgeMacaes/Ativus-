@@ -29,6 +29,8 @@ jobs:
           $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
       - name: Instalar dependências
         run: npm install --legacy-peer-deps
+      - name: Confirmar código da compilação
+        run: echo "ATIVUS Android build — $GITHUB_SHA"
       - name: Compilar aplicação web para Capacitor Android
         run: npm run build
         env:
