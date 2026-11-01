@@ -74,7 +74,7 @@ export default function Inspections(){
    supabase.from('inspecao_itens').select(itemSelect).eq('inspecao_id',row.id).order('ordem'),
    supabase.from('inspecao_registos').select(recordSelect).eq('inspecao_id',row.id).order('criado_em'),
    supabase.from('componentes').select('id,codigo,nome,tipo,ativo_id,componente_pai_id,localizacao,entidade_id').eq('entidade_id',row.entidade_id),
-   supabase.from('ativos').select('id,entidade_id,codigo,nome,tipo,localizacao,empreendimento_id').eq('entidade_id',row.entidade_id),
+   supabase.from('ativos').select('id,entidade_id,codigo,nome,tipo,localizacao').eq('entidade_id',row.entidade_id),
    supabase.from('patologias').select('id,codigo,inspecao_id,ativo_id,componente_id,tipo,estado').eq('inspecao_id',row.id)
   ]);
   if(iRes.error||rRes.error||cRes.error||aRes.error||pRes.error){setError(iRes.error?.message||rRes.error?.message||cRes.error?.message||aRes.error?.message||pRes.error?.message);return}
