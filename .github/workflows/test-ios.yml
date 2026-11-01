@@ -24,6 +24,8 @@ jobs:
         run: npm run build
         env:
           BUILD_TARGET: ios
+          VITE_SUPABASE_URL: https://jyxlgtgzehclcyyvhuvj.supabase.co
+          VITE_SUPABASE_ANON_KEY: sb_publishable_xungXBLcpvaCQChW4cOdpg_bGE4xtZ7
       - name: Adicionar plataforma iOS
         run: npx cap add ios
       - name: Sincronizar Capacitor
