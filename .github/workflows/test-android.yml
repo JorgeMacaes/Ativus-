@@ -54,7 +54,7 @@ jobs:
             mkdir -p "$dir"
             convert public/ativus-icon.svg -background none -resize "${size}x${size}" "$dir/ic_launcher.png"
             cp "$dir/ic_launcher.png" "$dir/ic_launcher_round.png"
-            convert public/ativus-icon.svg -background none -resize 58% -gravity center -extent "${fgsize}x${fgsize}" "$dir/ic_launcher_foreground.png"
+            convert public/ativus-icon.svg -background none -resize "${fgsize}x${fgsize}" -resize 58% -gravity center -background none -extent "${fgsize}x${fgsize}" "$dir/ic_launcher_foreground.png"
           done
           mkdir -p android/app/src/main/res/mipmap-anydpi-v26
           cat > android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml <<'EOF'
