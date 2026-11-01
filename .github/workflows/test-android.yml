@@ -33,6 +33,8 @@ jobs:
         run: npm run build
         env:
           BUILD_TARGET: android
+          VITE_SUPABASE_URL: https://jyxlgtgzehclcyyvhuvj.supabase.co
+          VITE_SUPABASE_ANON_KEY: sb_publishable_xungXBLcpvaCQChW4cOdpg_bGE4xtZ7
       - name: Adicionar plataforma Android
         run: npx cap add android
       - name: Sincronizar Capacitor
