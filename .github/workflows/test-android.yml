@@ -29,8 +29,10 @@ jobs:
           $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
       - name: Instalar dependências
         run: npm install --legacy-peer-deps
-      - name: Compilar aplicação web
+      - name: Compilar aplicação web para Capacitor Android
         run: npm run build
+        env:
+          BUILD_TARGET: android
       - name: Adicionar plataforma Android
         run: npx cap add android
       - name: Sincronizar Capacitor
