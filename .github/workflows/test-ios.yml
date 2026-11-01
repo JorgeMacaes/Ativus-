@@ -1,8 +1,5 @@
 name: Teste iOS Seven M Ativus (sem publicação)
 on:
-  push:
-    branches:
-      - 'testes/**'
   workflow_dispatch:
 permissions:
   contents: read
