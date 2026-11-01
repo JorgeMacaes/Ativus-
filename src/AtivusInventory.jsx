@@ -46,7 +46,7 @@ export default function AtivusInventory({onOpenAI=()=>{}}){
    if(componentForm.tipo==='subcomponente'&&!componentForm.componente_pai_id)throw new Error('Seleciona o componente principal.');
    const code='CMP-'+Date.now().toString().slice(-9);
    const payload={entidade_id:selected.entidade_id,ativo_id:componentForm.tipo==='componente'?selected.id:null,componente_pai_id:componentForm.tipo==='subcomponente'?componentForm.componente_pai_id:null,codigo:code,nome:componentForm.nome.trim(),tipo:componentForm.tipo,criado_por:userData.user.id};
-   const {data,error:e}=await supabase.from('componentes').insert(payload).select('id,entidade_id,empreendimento_id,codigo,nome,tipo,ativo_id,componente_pai_id').single();
+   const {data,error:e}=await supabase.from('componentes').insert(payload).select('id,entidade_id,codigo,nome,tipo,ativo_id,componente_pai_id').single();
    if(e)throw e;setComponents(v=>[...v,data]);setComponentOpen(false);setComponentForm({tipo:'componente',nome:'',componente_pai_id:''});setMessage('Elemento guardado na estrutura do ativo.');
   }catch(e){setError(e?.message||'Não foi possível guardar o elemento.');}
   finally{setSaving(false);}
