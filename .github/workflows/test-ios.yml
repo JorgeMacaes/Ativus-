@@ -30,7 +30,7 @@ jobs:
         run: npx cap sync ios
       - name: Aplicar ícone Seven M Ativus
         run: |
-          sudo apt-get update && sudo apt-get install -y imagemagick
+          brew install imagemagick
           ICON_DIR="ios/App/App/Assets.xcassets/AppIcon.appiconset"
           mkdir -p "$ICON_DIR"
           convert public/ativus-icon.svg -background none -resize 1024x1024 "$ICON_DIR/AppIcon.png"
