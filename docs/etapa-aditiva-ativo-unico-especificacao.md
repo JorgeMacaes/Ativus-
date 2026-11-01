@@ -276,8 +276,8 @@ As políticas do módulo de IA herdam frequentemente a autorização através de
 
 ### 15.4 Edge Functions ativas
 
-Foram enumeradas 10 funções ativas:
-`fornecedor-portal`, `public-occurrence`, `ativus-knowledge-discovery`, `ativus-knowledge-analyzer`, `ativus-knowledge-publisher`, `ativus-knowledge-relator`, `ativus-ai-inventory-analyzer`, `ativus-member-invite` e `ativus-sensor-ingest` (a listagem devolveu 10 entradas; a enumeração nominal deve ser reconciliada com os metadados completos antes da migração).
+Foram enumeradas 9 funções ativas:
+`fornecedor-portal`, `public-occurrence`, `ativus-knowledge-discovery`, `ativus-knowledge-analyzer`, `ativus-knowledge-publisher`, `ativus-knowledge-relator`, `ativus-ai-inventory-analyzer`, `ativus-member-invite` e `ativus-sensor-ingest` (9 entradas na listagem consultada).
 
 A `public-occurrence` continua a ser uma dependência crítica: JWT está desativado para permitir submissão pública por QR. A adaptação deve validar token, estado do ativo e entidade no servidor e preservar a associação ao nó exato. As restantes funções também precisam de revisão individual do código, mesmo quando o nome não sugere dependência do inventário.
 
