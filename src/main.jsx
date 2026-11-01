@@ -14,9 +14,6 @@ import PublicOccurrence from './PublicOccurrence.jsx';
 import TechnicalDocuments from './TechnicalDocuments.jsx';
 import Monitoring from './Monitoring.jsx';
 
-const seedProjects=[
- {id:'EMP-0001',name:'Edifício Rua Central',location:'Porto',type:'Edifício multifamiliar',status:'Em curso',description:'Empreendimento de demonstração'}
-];
 const seedSuppliers=[{id:'FOR-0001',name:'Fornecedor de Demonstração',nif:'500000000',email:'fornecedor@exemplo.pt',phone:'',specialties:['Construção civil','Reabilitação'],zones:'Norte',licensePlan:'Profissional',licenseStatus:'Pendente',paymentStatus:'Por pagar',validUntil:''}];
 const seedAssets=[
  {id:'ATV-0001',name:'Edifício Rua Central',type:'Edifício multifamiliar',location:'Porto',status:'Ativo',ec:2,maintenance:'Bom',components:12,pathologies:4},
@@ -39,7 +36,6 @@ function load(k,s){try{return JSON.parse(localStorage.getItem(k))||s}catch{retur
 function save(k,v){localStorage.setItem(k,JSON.stringify(v));return v}
 
 function App(){
- const [projects,setProjects]=useState(()=>load('ativus_projects',seedProjects));
  const [assets,setAssets]=useState(()=>load('ativus_assets',seedAssets));
  const [suppliers,setSuppliers]=useState(()=>load('ativus_suppliers',seedSuppliers));
  const [supplierFormOpen,setSupplierFormOpen]=useState(false);
@@ -47,7 +43,7 @@ function App(){
  const [pathologies,setPathologies]=useState(()=>load('ativus_pathologies',seedPathologies));
  const [materials,setMaterials]=useState(()=>load('ativus_materials',seedMaterials));
  const [relations,setRelations]=useState(()=>load('ativus_relations',seedRelations));
- const [view,setView]=useState('dashboard'),[selected,setSelected]=useState(null),[selectedProject,setSelectedProject]=useState(null),[menu,setMenu]=useState(false),[query,setQuery]=useState('');
+ const [view,setView]=useState('dashboard'),[selected,setSelected]=useState(null),[menu,setMenu]=useState(false),[query,setQuery]=useState('');
  const [paramTab,setParamTab]=useState('relations');
  const [projectFormOpen,setProjectFormOpen]=useState(false);
  const [projectForm,setProjectForm]=useState({name:'',location:'',type:'',description:''});
@@ -68,18 +64,6 @@ function App(){
    {view==='crm'&&<CRM />}
    {view==='ativus-ai'&&<AtivusAI onBack={()=>go('assets')} />}
    {view==='suppliers'&&<Suppliers />}
-   {projectFormOpen&&<div role="presentation" onClick={()=>setProjectFormOpen(false)} style={{position:'fixed',inset:0,zIndex:2000,background:'rgba(10,28,44,.58)',display:'grid',placeItems:'center',padding:18}}>
-    <form onSubmit={e=>{e.preventDefault();if(!projectForm.name.trim()||!projectForm.location.trim()||!projectForm.type){setProjectError('Preencha o nome, a localização e o tipo de empreendimento.');return;}const n=Math.max(0,...projects.map(p=>Number(String(p.id).replace(/\\D/g,''))||0))+1;const project={id:'EMP-'+String(n).padStart(4,'0'),name:projectForm.name.trim(),location:projectForm.location.trim(),type:projectForm.type,description:projectForm.description.trim(),status:'Em curso'};setProjects(save('ativus_projects',[project,...projects]));setProjectFormOpen(false);}} onClick={e=>e.stopPropagation()} style={{width:'100%',maxWidth:520,maxHeight:'90vh',overflowY:'auto',background:'#fff',borderRadius:18,padding:22,boxSizing:'border-box',boxShadow:'0 20px 60px rgba(0,0,0,.25)'}}>
-     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:12}}><div><span className="eyebrow">ATIVUS</span><h2 style={{margin:'8px 0 4px',color:'#173b59'}}>Novo empreendimento</h2><p className="muted" style={{marginTop:0}}>Introduza os dados do empreendimento.</p></div><button type="button" className="secondary" onClick={()=>setProjectFormOpen(false)} aria-label="Fechar"><X size={18}/></button></div>
-     <label style={{display:'block',marginTop:16,fontWeight:700,color:'#23415b'}}>Nome do empreendimento *</label><input required value={projectForm.name} onChange={e=>setProjectForm({...projectForm,name:e.target.value})} placeholder="Ex.: Edifício Rua Central" style={{width:'100%',boxSizing:'border-box',marginTop:6,padding:12,border:'1px solid #cad8e5',borderRadius:9,fontSize:16}}/>
-     <label style={{display:'block',marginTop:14,fontWeight:700,color:'#23415b'}}>Localização *</label><input required value={projectForm.location} onChange={e=>setProjectForm({...projectForm,location:e.target.value})} placeholder="Localidade ou morada" style={{width:'100%',boxSizing:'border-box',marginTop:6,padding:12,border:'1px solid #cad8e5',borderRadius:9,fontSize:16}}/>
-     <label style={{display:'block',marginTop:14,fontWeight:700,color:'#23415b'}}>Tipo de empreendimento *</label><select required value={projectForm.type} onChange={e=>setProjectForm({...projectForm,type:e.target.value})} style={{width:'100%',boxSizing:'border-box',marginTop:6,padding:12,border:'1px solid #cad8e5',borderRadius:9,fontSize:16,background:'#fff',color:'#23415b'}}><option value="">Selecione uma opção</option><option>Edifício multifamiliar</option><option>Edifício unifamiliar</option><option>Edifício de serviços / escritórios</option><option>Edifício comercial</option><option>Instalação industrial</option><option>Infraestrutura rodoviária</option><option>Ponte / viaduto</option><option>Infraestrutura ferroviária</option><option>Infraestrutura hidráulica</option><option>Equipamento público</option><option>Outro</option></select>
-     <label style={{display:'block',marginTop:14,fontWeight:700,color:'#23415b'}}>Descrição</label><textarea value={projectForm.description} onChange={e=>setProjectForm({...projectForm,description:e.target.value})} rows={3} placeholder="Descrição ou observações (opcional)" style={{width:'100%',boxSizing:'border-box',marginTop:6,padding:12,border:'1px solid #cad8e5',borderRadius:9,fontSize:16,resize:'vertical'}}/>
-     {projectError&&<p role="alert" style={{color:'#b42318',fontSize:13}}>{projectError}</p>}
-     <div style={{display:'flex',justifyContent:'flex-end',gap:10,marginTop:20}}><button type="button" className="secondary" onClick={()=>setProjectFormOpen(false)}>Cancelar</button><button type="submit" className="primary">Guardar empreendimento</button></div>
-     <p style={{fontSize:11,color:'#708396',marginTop:14}}>Os registos desta versão continuam guardados localmente neste navegador.</p>
-    </form>
-   </div>}
    {view==='dashboard'&&<AtivusDashboard onAssets={()=>go('assets')}/>}
    {view==='assets'&&<AtivusInventory onOpenAI={()=>setView('ativus-ai')} />}
    {view==='asset'&&current&&<AssetDetail asset={current} inspections={inspections} pathologies={pathologies} onBack={()=>go('assets')} onNewInspection={()=>addInspection(current.id)} onNewPathology={addPathology}/>}
@@ -93,9 +77,6 @@ function App(){
   </main>
  </div>
 }
-function Projects({projects,onNew,onOpen}){return <section className="content"><div className="toolbar"><div><h2 className="sectiontitle">Empreendimentos</h2><p className="muted">Registo e organização dos empreendimentos geridos na plataforma ATIVUS.</p></div><button className="primary" onClick={onNew}><Plus size={18}/> Novo empreendimento</button></div><div className="panel table"><div className="thead"><span>Código / Empreendimento</span><span>Localização</span><span>Tipo</span><span>Estado</span><span></span></div>{projects.length?projects.map(p=><div className="trow" key={p.id} role="button" tabIndex={0} onClick={()=>onOpen(p)} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onOpen(p)}}} style={{cursor:'pointer'}}><div><strong>{p.name}</strong><small>{p.id}{p.description?' · '+p.description:''}</small></div><span>{p.location}</span><span>{p.type}</span><span className="green">● {p.status}</span><span><button type="button" className="secondary" onClick={e=>{e.stopPropagation();onOpen(p);}}>Ver detalhes <ChevronRight size={16}/></button></span></div>):<p className="empty">Ainda não existem empreendimentos. Selecione «Novo empreendimento» para criar o primeiro registo.</p>}</div><p className="muted">Nota: nesta versão, os registos são guardados neste navegador. A gravação partilhada na base de dados Supabase ainda precisa de ser integrada.</p></section>}
-function ProjectDetail({project,assets,onBack}){const linked=assets.filter(a=>a.projectId===project.id);return <section className="content"><div className="toolbar"><div><span className="eyebrow">FICHA DO EMPREENDIMENTO</span><h2 className="sectiontitle">{project.name}</h2><p className="muted">{project.id}</p></div><button className="secondary" onClick={onBack}>Voltar à lista</button></div><div className="panel" style={{padding:20,display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(190px,1fr))',gap:18}}><div><small className="muted">Localização</small><p><strong>{project.location||'Não indicada'}</strong></p></div><div><small className="muted">Tipo de empreendimento</small><p><strong>{project.type||'Não definido'}</strong></p></div><div><small className="muted">Estado</small><p className="green"><strong>● {project.status||'Em curso'}</strong></p></div><div><small className="muted">Código</small><p><strong>{project.id}</strong></p></div><div style={{gridColumn:'1/-1'}}><small className="muted">Descrição</small><p>{project.description||'Sem descrição registada.'}</p></div></div><div className="panel" style={{padding:20,marginTop:16}}><h3>Ativos associados</h3>{linked.length?linked.map(a=><div key={a.id} className="trow"><strong>{a.name}</strong><span>{a.id}</span><span>{a.location}</span></div>):<p className="muted">Ainda não existem ativos associados a este empreendimento. Poderemos associá-los numa próxima etapa.</p>}</div><p className="muted">Os dados desta versão são guardados localmente neste navegador.</p></section>}
-
 function CRM(){
  const [loading,setLoading]=useState(true);
  const [saving,setSaving]=useState(false);
