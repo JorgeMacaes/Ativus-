@@ -44,12 +44,9 @@ alter table public.componentes
   add column if not exists entidade_id uuid;
 
 update public.componentes c
-set entidade_id = coalesce(a.entidade_id,e.entidade_id)
+set entidade_id = e.entidade_id
 from public.empreendimentos e
-left join public.ativos a on a.empreendimento_id=e.id
-where c.empreendimento_id=e.id
-  and c.entidade_id is null
-  and (a.id is null or c.ativo_id=a.id);
+where c.empreendimento_id=e.id and c.entidade_id is null;
 
 update public.componentes c
 set entidade_id=a.entidade_id
