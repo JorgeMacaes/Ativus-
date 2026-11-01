@@ -238,7 +238,7 @@ function Suppliers(){
    </div>
    <p className="muted" style={{marginTop:18}}>A conta está associada a este fornecedor. A receção de consultas só será permitida depois da validação administrativa e da ativação da licença, com pagamento confirmado.</p>
   </div>:<div className="panel" style={{padding:22,maxWidth:760}}>
-   <div className="panelhead"><div><h3>Pedido de registo de fornecedor</h3><span>O registo fica pendente até validação pela administração Seven M Ativus.</span></div><span className="pill">Acesso autenticado</span></div>
+   <div className="panelhead"><div><h3>Pedido de registo de fornecedor</h3><span>O registo fica pendente até validação pela administração ATIVUS.</span></div><span className="pill">Acesso autenticado</span></div>
    <form onSubmit={submit} style={{marginTop:16}}>
     <div className="grid2">
      <label>Nome da empresa *<input required maxLength={180} value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder="Denominação social"/></label>
