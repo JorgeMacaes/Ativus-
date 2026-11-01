@@ -23,8 +23,8 @@ export default function AtivusDashboard({onAssets=()=>{}}){
   finally{setLoading(false);}
  },[]);
  useEffect(()=>{load();},[load]);
- const ecCounts=useMemo(()=>[0,1,2,3,4,5].map(ec=>({ec,value:assets.filter(a=>Number(a.classe_estado_conservacao)===ec).length})),[assets]);
- const severity=useMemo(()=>[{label:'Crítica · EC5',value:pathologies.filter(p=>Number(p.gravidade)===5).length,cls:'sevcritical'},{label:'Alta · EC4',value:pathologies.filter(p=>Number(p.gravidade)===4).length,cls:'sevhigh'},{label:'Moderada · EC3',value:pathologies.filter(p=>Number(p.gravidade)===3).length,cls:'sevmedium'},{label:'Baixa · EC0–2',value:pathologies.filter(p=>Number(p.gravidade)<=2).length,cls:'sevlow'}],[pathologies]);
+ const ecCounts=useMemo(()=>[0,1,2,3,4,5].map(ec=>({ec,value:assets.filter(a=>a.classe_estado_conservacao!==null&&a.classe_estado_conservacao!==undefined&&Number(a.classe_estado_conservacao)===ec).length})),[assets]);
+ const severity=useMemo(()=>[{label:'Crítica · EC5',value:pathologies.filter(p=>Number(p.gravidade)===5).length,cls:'sevcritical'},{label:'Alta · EC4',value:pathologies.filter(p=>Number(p.gravidade)===4).length,cls:'sevhigh'},{label:'Moderada · EC3',value:pathologies.filter(p=>Number(p.gravidade)===3).length,cls:'sevmedium'},{label:'Baixa · EC0–2',value:pathologies.filter(p=>p.gravidade!==null&&p.gravidade!==undefined&&Number(p.gravidade)<=2).length,cls:'sevlow'}],[pathologies]);
  const open=pathologies.filter(p=>!['encerrada','verificada'].includes(p.estado)).length;
  const recent=inspections.slice(0,4),maxEC=Math.max(1,...ecCounts.map(x=>x.value)),maxSeverity=Math.max(1,...severity.map(x=>x.value));
  const assetName=id=>assets.find(a=>a.id===id)?.nome||'Ativo sem identificação';
