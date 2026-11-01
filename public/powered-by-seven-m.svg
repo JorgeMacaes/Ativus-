@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 82" role="img" aria-label="Powered by Seven M">
+<text x="2" y="32" fill="#91a69f" font-family="Arial,Helvetica,sans-serif" font-size="19" letter-spacing="1">POWERED BY</text>
+<text x="2" y="70" fill="#ffffff" font-family="Georgia,'Times New Roman',serif" font-size="43">seven</text>
+<path d="M151 35 V68 H184 V35 M151 68 L167.5 51 L184 68" fill="none" stroke="#d8b65b" stroke-width="3.5"/>
+</svg>
