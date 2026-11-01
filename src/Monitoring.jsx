@@ -23,7 +23,7 @@ export default function Monitoring(){
  const loadChoices=async id=>{
   setForm(v=>({...v,entidade_id:id,ativo_id:'',componente_id:''}));
   if(!id){setAssets([]);setComponents([]);return}
-  const [a,c]=await Promise.all([supabase.from('ativos').select('id,codigo,nome').eq('entidade_id',id).order('nome'),supabase.from('componentes').select('id,codigo,nome,ativo_id').eq('empreendimento_id',id).order('nome')]);
+  const [a,c]=await Promise.all([supabase.from('ativos').select('id,codigo,nome').eq('entidade_id',id).order('nome'),supabase.from('componentes').select('id,codigo,nome,ativo_id').eq('entidade_id',id).order('nome')]);
   if(a.error||c.error){setError(a.error?.message||c.error?.message);return}setAssets(a.data||[]);setComponents(c.data||[]);
  };
  const saveDevice=async e=>{
