@@ -13,9 +13,9 @@ export default function AtivusDashboard({onAssets=()=>{}}){
    const ids=[...new Set((members||[]).map(x=>x.entidade_id))];
    if(!ids.length){setAssets([]);setInspections([]);setPathologies([]);return;}
    const [a,i,p]=await Promise.all([
-    supabase.from('ativos').select('id,codigo,nome,tipo,localizacao,classe_estado_conservacao,estado,empreendimento_id').in('entidade_id',ids).order('criado_em',{ascending:false}),
-    supabase.from('inspecoes').select('id,codigo,tipo,data_inspecao,inspetor_nome,estado,ativo_id,empreendimento_id').in('entidade_id',ids).order('data_inspecao',{ascending:false}),
-    supabase.from('patologias').select('id,codigo,tipo,gravidade,estado,ativo_id,empreendimento_id').in('entidade_id',ids)
+    supabase.from('ativos').select('id,codigo,nome,tipo,localizacao,classe_estado_conservacao,estado').in('entidade_id',ids).order('criado_em',{ascending:false}),
+    supabase.from('inspecoes').select('id,codigo,tipo,data_inspecao,inspetor_nome,estado,ativo_id').in('entidade_id',ids).order('data_inspecao',{ascending:false}),
+    supabase.from('patologias').select('id,codigo,tipo,gravidade,estado,ativo_id').in('entidade_id',ids)
    ]);
    if(a.error)throw a.error;if(i.error)throw i.error;if(p.error)throw p.error;
    setAssets(a.data||[]);setInspections(i.data||[]);setPathologies(p.data||[]);
