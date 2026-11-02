@@ -1,0 +1,14 @@
+{
+  "name": "voz-amiga",
+  "version": "1.0.0",
+  "description": "Assistente Voz Amiga para Seniores",
+  "main": "index.js",
+  "scripts": {
+    "build": "echo 'Build ready'"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.0.0",
+    "@capacitor/core": "^6.0.0",
+    "@capacitor/cli": "^6.0.0"
+  }
+}
