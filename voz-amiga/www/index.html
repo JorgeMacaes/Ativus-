@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voz Amiga - Assistente Sénior</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --accent: #16a34a;
+            --danger: #dc2626;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 16px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 12px 0;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .avatar-section {
+            text-align: center;
+        }
+
+        .avatar-circle {
+            width: 100px;
+            height: 100px;
+            background: #dbeafe;
+            border-radius: 50%;
+            margin: 0 auto 12px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            border: 4px solid var(--primary);
+        }
+
+        .speech-bubble {
+            background: #f1f5f9;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 1.25rem;
+            line-height: 1.5;
+            color: var(--text-main);
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .btn-large {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            padding: 20px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
+            transition: background-color 0.2s;
+        }
+
+        .btn-large:active {
+            background-color: var(--primary-dark);
+            transform: scale(0.98);
+        }
+
+        .btn-emergency {
+            background-color: var(--danger);
+            box-shadow: 0 4px 6px rgba(220, 38, 38, 0.2);
+        }
+
+        .grid-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .btn-secondary {
+            background-color: #e2e8f0;
+            color: var(--text-main);
+            border: none;
+            border-radius: 14px;
+            padding: 16px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .btn-secondary:active {
+            background-color: #cbd5e1;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .caregiver-panel {
+            border-top: 2px dashed #cbd5e1;
+            padding-top: 16px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Voz Amiga</h1>
+            <p>O seu companheiro diário</p>
+        </header>
+
+        <!-- Ecrã Principal do Sénior -->
+        <div class="card">
+            <div class="avatar-section">
+                <div class="avatar-circle" id="avatarIcon">🤖</div>
+                <div class="speech-bubble" id="speechText">
+                    Bom dia! Como se sente hoje? Toque no botão abaixo para falar comigo.
+                </div>
+            </div>
+
+            <button class="btn-large" onclick="falarComAssistente()">
+                🎤 Toque para Falar
+            </button>
+        </div>
+
+        <!-- Ações Rápidas / Simulação de Rotina -->
+        <div class="card">
+            <div class="section-title">Simular Momento do Dia</div>
+            <div class="grid-buttons">
+                <button class="btn-secondary" onclick="simularMomento('manha')">☀️ Manhã</button>
+                <button class="btn-secondary" onclick="simularMomento('tarde')">☕ Tarde</button>
+                <button class="btn-secondary" onclick="simularMomento('medicacao')">💊 Medicação</button>
+                <button class="btn-secondary" onclick="simularMomento('noite')">🌙 Noite</button>
+            </div>
+        </div>
+
+        <!-- Painel de Cuidador / IPSS -->
+        <div class="card caregiver-panel">
+            <div class="section-title">Painel do Cuidador / IPSS</div>
+            <p style="font-size: 0.95rem; color: var(--text-muted);">Estado atual: <strong style="color: var(--accent);">Estável (Sem alertas)</strong></p>
+            <button class="btn-large btn-emergency" onclick="alertaEmergencia()">
+                🚨 Alerta de Emergência
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function falarTexto(texto) {
+            document.getElementById('speechText').innerText = texto;
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(texto);
+                utterance.lang = 'pt-PT';
+                utterance.rate = 0.9; // Velocidade ligeiramente mais calma para séniores
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function falarComAssistente() {
+            const frasesExemplo = [
+                "Estou aqui consigo. Lembre-se de beber um copo de água fresca.",
+                "Que alegria ouvi-lo! Quer que ligue a uma pessoa amiga?",
+                "Está um dia agradável. Apetece-lhe dar uma breve caminhada?",
+                "Estou a escutar. Pode contar-me como correu a sua manhã."
+            ];
+            const fraseAleatoria = frasesExemplo[Math.floor(Math.random() * frasesExemplo.length)];
+            falarTexto(fraseAleatoria);
+        }
+
+        function simularMomento(momento) {
+            let texto = "";
+            if (momento === 'manha') {
+                texto = "Bom dia! Já tomou o pequeno-almoço e os seus comprimidos matinais?";
+            } else if (momento === 'tarde') {
+                texto = "Boa tarde! Como tem passado? Não se esqueça de dar os seus passos diários.";
+            } else if (momento === 'medicacao') {
+                texto = "Lembrete importante: está na hora de tomar a medicação da tarde com um copo de água.";
+            } else if (momento === 'noite') {
+                texto = "Boa noite. Desejo-lhe um descanso tranquilo. Feche bem as janelas e até amanhã!";
+            }
+            falarTexto(texto);
+        }
+
+        function alertaEmergencia() {
+            const aviso = "Aviso enviado com sucesso para o centro de atendimento da IPSS e familiares.";
+            falarTexto(aviso);
+            alert("ALERTA: Chamada de emergência acionada para o cuidador.");
+        }
+    </script>
+</body>
+</html>
