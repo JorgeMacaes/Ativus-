@@ -1,5 +1,5 @@
 import React,{useCallback,useEffect,useMemo,useRef,useState} from 'react';
-import {Brain,Upload,RefreshCw,FileText,FolderOpen,AlertTriangle,CheckCircle2,Clock3,HardDrive} from 'lucide-react';
+import {Brain,Upload,RefreshCw,FileText,FolderOpen,AlertTriangle,CheckCircle2,Clock3,HardDrive,Camera,Video,VideoOff,ImagePlus} from 'lucide-react';
 import {supabase} from './lib/supabase.js';
 
 const BUCKET='ativus-ai-documentos';
@@ -35,6 +35,14 @@ export default function AtivusAI({onBack=()=>{}}){
  const [error,setError]=useState(''),[message,setMessage]=useState('');
  const [parentChoices,setParentChoices]=useState({}),[publishing,setPublishing]=useState('');
  const inputRef=useRef(null);
+ const cameraVideoRef=useRef(null),cameraStreamRef=useRef(null);
+ const [cameraOpen,setCameraOpen]=useState(false),[cameraError,setCameraError]=useState('');
+ const [guided,setGuided]=useState({zona:'',utilizacao:'',material:'',acesso:'',observacoes:''});
+ const [captureCount,setCaptureCount]=useState(0);
+ const stopCamera=useCallback(()=>{if(cameraStreamRef.current){cameraStreamRef.current.getTracks().forEach(t=>t.stop());cameraStreamRef.current=null;}if(cameraVideoRef.current)cameraVideoRef.current.srcObject=null;setCameraOpen(false);},[]);
+ useEffect(()=>()=>{if(cameraStreamRef.current)cameraStreamRef.current.getTracks().forEach(t=>t.stop());},[]);
+ const startCamera=async()=>{setCameraError('');try{if(!navigator.mediaDevices?.getUserMedia)throw new Error('A câmara em direto não está disponível neste navegador. Usa Fotografar com o telemóvel.');const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});cameraStreamRef.current=stream;setCameraOpen(true);setTimeout(()=>{if(cameraVideoRef.current){cameraVideoRef.current.srcObject=stream;cameraVideoRef.current.play().catch(()=>{});}},80);}catch(e){setCameraError(e?.message||'Não foi possível iniciar a câmara. Verifica as permissões.');}};
+ const captureCameraFrame=()=>{const v=cameraVideoRef.current;if(!v||!v.videoWidth){setCameraError('A câmara ainda não está pronta.');return;}const canvas=document.createElement('canvas');canvas.width=v.videoWidth;canvas.height=v.videoHeight;canvas.getContext('2d').drawImage(v,0,0);canvas.toBlob(blob=>{if(!blob){setCameraError('Falha ao capturar imagem.');return;}setFiles(old=>[...old,new File([blob],`ativus-camera-${Date.now()}.jpg`,{type:'image/jpeg'})]);setCaptureCount(n=>n+1);setMessage('Fotografia capturada e adicionada ao levantamento.');},'image/jpeg',.9);};
  const load=useCallback(async()=>{
   if(!supabase){setError('A ligação ao Supabase não está configurada.');setLoading(false);return;}
   setLoading(true);setError('');
@@ -189,21 +197,22 @@ export default function AtivusAI({onBack=()=>{}}){
   }catch(e){setError(e.message||'Não foi possível atualizar a tarefa.');}
  };
  const analyzeSurvey=async(id)=>{
-  setAnalyzing(id);setError('');setMessage('A IA está a ler os documentos e a preparar propostas de inventário…');
+  setAnalyzing(id);setError('');setMessage('A IA está a analisar imagens e documentos e a preparar propostas de inventário…');
   try{const {data,error}=await supabase.functions.invoke('ativus-ai-inventory-analyzer',{body:{levantamento_id:id}});if(error)throw error;if(!data?.ok)throw new Error(data?.error||'A análise não foi concluída.');setMessage('Análise concluída: '+data.propostas+' proposta(s) de inventário. Revê os elementos antes de os validar.');await loadSurveyData();}
   catch(e){setError(e?.message||'Não foi possível analisar os documentos.');setMessage('');}
   finally{setAnalyzing('');}
  };
  const createSurveyAndUpload=async()=>{
   if(!selected) return setError('Seleciona primeiro um empreendimento.');
-  if(!files.length)return setError('Seleciona pelo menos um ficheiro.');
+  if(!files.length)return setError('Adiciona pelo menos uma fotografia ou documento.');
+  stopCamera();
   setSaving(true);setError('');setMessage('');
   let surveyId=null;
   try{
    const {data:userData,error:userError}=await supabase.auth.getUser();
    if(userError)throw userError;
    const {data:survey,error:surveyError}=await supabase.from('ai_levantamentos').insert({
-    empreendimento_id:selected,titulo:title.trim()||'Levantamento técnico',descricao:description.trim()||null,estado:'rascunho',criado_por:userData.user.id
+    empreendimento_id:selected,titulo:title.trim()||'Levantamento técnico',descricao:[description.trim(),`Contexto do levantamento:`, `Zona: ${guided.zona||'Não indicada'}`, `Utilização: ${guided.utilizacao||'Não indicada'}`, `Material conhecido: ${guided.material||'Não identificado'}`, `Acesso: ${guided.acesso||'Não indicado'}`, `Observações: ${guided.observacoes||'Nenhuma'}`].filter(Boolean).join('\n'),estado:'rascunho',criado_por:userData.user.id
    }).select('id').single();
    if(surveyError)throw surveyError;
    surveyId=survey.id;
@@ -249,6 +258,28 @@ export default function AtivusAI({onBack=()=>{}}){
     <label style={{display:'block',fontWeight:700,marginTop:14}}>Descrição (opcional)</label>
     <textarea rows={2} value={description} onChange={e=>setDescription(e.target.value)} style={{width:'100%',maxWidth:650,boxSizing:'border-box',padding:11,border:'1px solid #cad8e5',borderRadius:8,marginTop:6}}/>
     <input ref={inputRef} type="file" multiple accept={ACCEPT} onChange={chooseFiles} style={{display:'none'}}/>
+    <input id="ativus-camera-native" type="file" accept="image/*" capture="environment" onChange={chooseFiles} style={{display:'none'}}/>
+    <div style={{display:'flex',gap:8,flexWrap:'wrap',marginTop:16}}>
+     <button type="button" className="primary" onClick={()=>document.getElementById('ativus-camera-native')?.click()}><Camera size={17}/> Fotografar com o telemóvel</button>
+     <button type="button" className="secondary" onClick={cameraOpen?stopCamera:startCamera}>{cameraOpen?<><VideoOff size={17}/> Fechar câmara</>:<><Video size={17}/> Abrir câmara em direto</>}</button>
+     <button type="button" className="secondary" onClick={()=>inputRef.current?.click()}><Upload size={17}/> Carregar ficheiros</button>
+    </div>
+    {cameraError&&<p role="alert" style={{color:'#a33'}}>{cameraError}</p>}
+    {cameraOpen&&<div style={{marginTop:12,padding:10,borderRadius:10,background:'#10283e'}}>
+     <video ref={cameraVideoRef} autoPlay playsInline muted style={{width:'100%',maxHeight:420,objectFit:'contain',background:'#000',borderRadius:8}}/>
+     <div style={{display:'flex',justifyContent:'space-between',gap:8,alignItems:'center',marginTop:10,color:'#fff',flexWrap:'wrap'}}><small>{captureCount} fotografia(s) capturada(s)</small><button type="button" className="primary" onClick={captureCameraFrame}><Camera size={16}/> Capturar imagem</button></div>
+    </div>}
+    <div style={{marginTop:16,padding:16,border:'1px solid #dce6ee',borderRadius:10,background:'#f7fafc'}}>
+     <strong><Brain size={17}/> Perguntas de apoio ao levantamento</strong>
+     <p className="muted">Responde ao que souberes. A IA recebe este contexto juntamente com as imagens; características não confirmáveis visualmente ficam por validar.</p>
+     <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(190px,1fr))',gap:10}}>
+      <label>Zona / localização<input value={guided.zona} onChange={e=>setGuided(v=>({...v,zona:e.target.value}))} placeholder="Ex.: fachada norte, cobertura…" style={{display:'block;width:'100%',padding:9,marginTop:5}}/></label>
+      <label>Utilização<input value={guided.utilizacao} onChange={e=>setGuided(v=>({...v,utilizacao:e.target.value}))} placeholder="Ex.: escritórios, habitação…" style={{display:'block',width:'100%',padding:9,marginTop:5}}/></label>
+      <label>Material conhecido<input value={guided.material} onChange={e=>setGuided(v=>({...v,material:e.target.value}))} placeholder="Se desconhecido, deixa em branco" style={{display:'block',width:'100%',padding:9,marginTop:5}}/></label>
+      <label>Condições de acesso<input value={guided.acesso} onChange={e=>setGuided(v=>({...v,acesso:e.target.value}))} placeholder="Ex.: acesso condicionado…" style={{display:'block',width:'100%',padding:9,marginTop:5}}/></label>
+     </div>
+     <label style={{display:'block',marginTop:10}}>Observações adicionais<textarea rows={2} value={guided.observacoes} onChange={e=>setGuided(v=>({...v,observacoes:e.target.value}))} style={{display:'block;width:100%;padding:9px;marginTop:5}}/></label>
+    </div>
     <div onClick={()=>inputRef.current?.click()} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();inputRef.current?.click();}}} role="button" tabIndex={0} style={{marginTop:16,padding:24,border:'2px dashed #9db2c4',borderRadius:12,textAlign:'center',cursor:'pointer',background:'#f7fafc'}}>
      <Upload size={28}/><p style={{fontWeight:700,margin:'8px 0 4px'}}>Selecionar ficheiros técnicos</p><p className="muted" style={{margin:0}}>PDF · DWG · DXF · DWF · DWFx · IFC · RVT · STEP · IGES · OBJ · STL · E57 · LAS · DOCX · XLSX · imagens</p>
      <small className="muted">Até 250 MB por ficheiro. Para ficheiros grandes, o envio pode demorar.</small>
