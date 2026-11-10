@@ -278,7 +278,7 @@ export default function AtivusAI({onBack=()=>{}}){
       <label>Material conhecido<input value={guided.material} onChange={e=>setGuided(v=>({...v,material:e.target.value}))} placeholder="Se desconhecido, deixa em branco" style={{display:'block',width:'100%',padding:9,marginTop:5}}/></label>
       <label>Condições de acesso<input value={guided.acesso} onChange={e=>setGuided(v=>({...v,acesso:e.target.value}))} placeholder="Ex.: acesso condicionado…" style={{display:'block',width:'100%',padding:9,marginTop:5}}/></label>
      </div>
-     <label style={{display:'block',marginTop:10}}>Observações adicionais<textarea rows={2} value={guided.observacoes} onChange={e=>setGuided(v=>({...v,observacoes:e.target.value}))} style={{display:'block;width:100%;padding:9px;marginTop:5}}/></label>
+     <label style={{display:'block',marginTop:10}}>Observações adicionais<textarea rows={2} value={guided.observacoes} onChange={e=>setGuided(v=>({...v,observacoes:e.target.value}))} style={{display:'block',width:'100%',padding:9,marginTop:5}}/></label>
     </div>
     <div onClick={()=>inputRef.current?.click()} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();inputRef.current?.click();}}} role="button" tabIndex={0} style={{marginTop:16,padding:24,border:'2px dashed #9db2c4',borderRadius:12,textAlign:'center',cursor:'pointer',background:'#f7fafc'}}>
      <Upload size={28}/><p style={{fontWeight:700,margin:'8px 0 4px'}}>Selecionar ficheiros técnicos</p><p className="muted" style={{margin:0}}>PDF · DWG · DXF · DWF · DWFx · IFC · RVT · STEP · IGES · OBJ · STL · E57 · LAS · DOCX · XLSX · imagens</p>
