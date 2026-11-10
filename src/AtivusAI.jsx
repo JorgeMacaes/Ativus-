@@ -273,7 +273,7 @@ export default function AtivusAI({onBack=()=>{}}){
      <strong><Brain size={17}/> Perguntas de apoio ao levantamento</strong>
      <p className="muted">Responde ao que souberes. A IA recebe este contexto juntamente com as imagens; características não confirmáveis visualmente ficam por validar.</p>
      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(190px,1fr))',gap:10}}>
-      <label>Zona / localização<input value={guided.zona} onChange={e=>setGuided(v=>({...v,zona:e.target.value}))} placeholder="Ex.: fachada norte, cobertura…" style={{display:'block;width:'100%',padding:9,marginTop:5}}/></label>
+      <label>Zona / localização<input value={guided.zona} onChange={e=>setGuided(v=>({...v,zona:e.target.value}))} placeholder="Ex.: fachada norte, cobertura…" style={{display:'block',width:'100%',padding:9,marginTop:5}}/></label>
       <label>Utilização<input value={guided.utilizacao} onChange={e=>setGuided(v=>({...v,utilizacao:e.target.value}))} placeholder="Ex.: escritórios, habitação…" style={{display:'block',width:'100%',padding:9,marginTop:5}}/></label>
       <label>Material conhecido<input value={guided.material} onChange={e=>setGuided(v=>({...v,material:e.target.value}))} placeholder="Se desconhecido, deixa em branco" style={{display:'block',width:'100%',padding:9,marginTop:5}}/></label>
       <label>Condições de acesso<input value={guided.acesso} onChange={e=>setGuided(v=>({...v,acesso:e.target.value}))} placeholder="Ex.: acesso condicionado…" style={{display:'block',width:'100%',padding:9,marginTop:5}}/></label>
