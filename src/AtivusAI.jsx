@@ -1,5 +1,5 @@
 import React,{useCallback,useEffect,useMemo,useRef,useState} from 'react';
-import {Brain,Upload,RefreshCw,FileText,FolderOpen,AlertTriangle,CheckCircle2,Clock3,HardDrive,Camera,Video,VideoOff,ImagePlus} from 'lucide-react';
+import {Brain,Upload,RefreshCw,FileText,FolderOpen,AlertTriangle,CheckCircle2,Clock3,HardDrive,Camera,Video,VideoOff,ImagePlus,Mic,MicOff,Sparkles} from 'lucide-react';
 import {supabase} from './lib/supabase.js';
 
 const BUCKET='ativus-ai-documentos';
@@ -39,8 +39,23 @@ export default function AtivusAI({onBack=()=>{}}){
  const [cameraOpen,setCameraOpen]=useState(false),[cameraError,setCameraError]=useState('');
  const [guided,setGuided]=useState({zona:'',utilizacao:'',material:'',acesso:'',observacoes:''});
  const [captureCount,setCaptureCount]=useState(0);
+ const [voiceListening,setVoiceListening]=useState(false);
+ const [voiceSupported,setVoiceSupported]=useState(true);
+ const recognitionRef=useRef(null);
  const stopCamera=useCallback(()=>{if(cameraStreamRef.current){cameraStreamRef.current.getTracks().forEach(t=>t.stop());cameraStreamRef.current=null;}if(cameraVideoRef.current)cameraVideoRef.current.srcObject=null;setCameraOpen(false);},[]);
- useEffect(()=>()=>{if(cameraStreamRef.current)cameraStreamRef.current.getTracks().forEach(t=>t.stop());},[]);
+ useEffect(()=>()=>{if(cameraStreamRef.current)cameraStreamRef.current.getTracks().forEach(t=>t.stop());try{recognitionRef.current?.stop();}catch{}},[]);
+ const startVoiceCapture=()=>{
+  const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SpeechRecognition){setVoiceSupported(false);setError('O reconhecimento de voz não está disponível neste navegador. Podes continuar a usar fotografias e texto.');return;}
+  try{
+   const recognition=new SpeechRecognition();recognition.lang='pt-PT';recognition.continuous=true;recognition.interimResults=true;recognitionRef.current=recognition;
+   recognition.onstart=()=>setVoiceListening(true);
+   recognition.onresult=e=>{let finalText='';for(let i=e.resultIndex;i<e.results.length;i++){const part=e.results[i][0]?.transcript||'';if(e.results[i].isFinal)finalText+=part+' ';}if(finalText.trim())setDescription(v=>(v.trim()?v.trim()+' ':'')+finalText.trim());};
+   recognition.onerror=e=>{setVoiceListening(false);if(e.error!=='no-speech'&&e.error!=='aborted')setError('Não foi possível transcrever a voz: '+e.error);};
+   recognition.onend=()=>{setVoiceListening(false);recognitionRef.current=null;};recognition.start();
+  }catch(e){setVoiceListening(false);setError(e?.message||'Não foi possível iniciar a captação de voz.');}
+ };
+ const stopVoiceCapture=()=>{try{recognitionRef.current?.stop();}catch{}setVoiceListening(false);};
  const startCamera=async()=>{setCameraError('');try{if(!navigator.mediaDevices?.getUserMedia)throw new Error('A câmara em direto não está disponível neste navegador. Usa Fotografar com o telemóvel.');const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});cameraStreamRef.current=stream;setCameraOpen(true);setTimeout(()=>{if(cameraVideoRef.current){cameraVideoRef.current.srcObject=stream;cameraVideoRef.current.play().catch(()=>{});}},80);}catch(e){setCameraError(e?.message||'Não foi possível iniciar a câmara. Verifica as permissões.');}};
  const captureCameraFrame=()=>{const v=cameraVideoRef.current;if(!v||!v.videoWidth){setCameraError('A câmara ainda não está pronta.');return;}const canvas=document.createElement('canvas');canvas.width=v.videoWidth;canvas.height=v.videoHeight;canvas.getContext('2d').drawImage(v,0,0);canvas.toBlob(blob=>{if(!blob){setCameraError('Falha ao capturar imagem.');return;}setFiles(old=>[...old,new File([blob],`ativus-camera-${Date.now()}.jpg`,{type:'image/jpeg'})]);setCaptureCount(n=>n+1);setMessage('Fotografia capturada e adicionada ao levantamento.');},'image/jpeg',.9);};
  const load=useCallback(async()=>{
@@ -206,7 +221,7 @@ export default function AtivusAI({onBack=()=>{}}){
   if(!selected) return setError('Seleciona primeiro um empreendimento.');
   if(!files.length)return setError('Adiciona pelo menos uma fotografia ou documento.');
   stopCamera();
-  setSaving(true);setError('');setMessage('');
+  stopVoiceCapture();setSaving(true);setError('');setMessage('');
   let surveyId=null;
   try{
    const {data:userData,error:userError}=await supabase.auth.getUser();
@@ -247,7 +262,7 @@ export default function AtivusAI({onBack=()=>{}}){
  };
  if(loading)return <section className="content"><div className="toolbar"><div><h2 className="sectiontitle">Inventário Inteligente</h2><p className="muted">Ferramentas inteligentes integradas no Inventário.</p></div><button className="secondary" onClick={onBack}>Voltar ao Inventário</button></div><div className="panel" style={{padding:24}}>A carregar Ativus AI…</div></section>;
  return <section className="content">
-  <div className="toolbar"><div><h2 className="sectiontitle">Inventário Inteligente</h2><p className="muted">Reúne plantas, desenhos CAD, modelos BIM, ficheiros 3D, fotografias e documentação técnica.</p><p className="muted">Extração automática disponível: PDF, imagens, IFC e DXF. DWG, RVT/Revit, nuvens de pontos e outros formatos são arquivados, mas requerem conversores especializados ainda não ligados.</p></div><div style={{display:"flex",gap:8,flexWrap:"wrap"}}><button className="secondary" onClick={onBack}>Voltar ao Inventário</button><button className="secondary" onClick={()=>{load();loadSurveyData();}}><RefreshCw size={16}/> Atualizar</button></div></div>
+  <div className="toolbar"><div><h2 className="sectiontitle">Inventário Inteligente</h2><p className="muted">A IA adquire informação a partir de fotografias, voz e documentação, preparando os dados para validação.</p><p className="muted">Extração automática disponível: PDF, imagens, IFC e DXF. DWG, RVT/Revit, nuvens de pontos e outros formatos são arquivados, mas requerem conversores especializados ainda não ligados.</p></div><div style={{display:"flex",gap:8,flexWrap:"wrap"}}><button className="secondary" onClick={onBack}>Voltar ao Inventário</button><button className="secondary" onClick={()=>{load();loadSurveyData();}}><RefreshCw size={16}/> Atualizar</button></div></div>
   {error&&<div className="panel" role="alert" style={{padding:14,marginBottom:14,borderLeft:'4px solid #b42318',color:'#8f1d1d'}}><AlertTriangle size={17}/> {error}</div>}
   {message&&<div className="panel" role="status" style={{padding:14,marginBottom:14,color:'#176344'}}><CheckCircle2 size={17}/> {message}</div>}
   {!projects.length?<div className="panel" style={{padding:20}}>Não existem empreendimentos disponíveis para esta conta. Cria ou associa primeiro um empreendimento.</div>:<>
@@ -258,12 +273,16 @@ export default function AtivusAI({onBack=()=>{}}){
     </select>
    </div>
    <div className="panel" style={{padding:20,marginBottom:16}}>
-    <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:8}}><Brain size={22}/><h3 style={{margin:0}}>Novo levantamento documental</h3></div>
+    <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:8}}><Brain size={22}/><h3 style={{margin:0}}>Novo levantamento inteligente</h3></div>
     <p className="muted">Seleciona ficheiros para os associar a {selectedProject?.nome||'este empreendimento'}. O original é guardado em armazenamento privado.</p>
     <label style={{display:'block',fontWeight:700,marginTop:14}}>Título do levantamento</label>
     <input value={title} onChange={e=>setTitle(e.target.value)} maxLength={180} style={{width:'100%',maxWidth:650,boxSizing:'border-box',padding:11,border:'1px solid #cad8e5',borderRadius:8,marginTop:6}}/>
-    <label style={{display:'block',fontWeight:700,marginTop:14}}>Descrição (opcional)</label>
-    <textarea rows={2} value={description} onChange={e=>setDescription(e.target.value)} style={{width:'100%',maxWidth:650,boxSizing:'border-box',padding:11,border:'1px solid #cad8e5',borderRadius:8,marginTop:6}}/>
+    <label style={{display:'block',fontWeight:700,marginTop:14}}>Descrição por texto ou voz (opcional)</label>
+    <textarea rows={3} value={description} onChange={e=>setDescription(e.target.value)} placeholder="Podes descrever o que estás a observar ou usar a captação de voz. A IA recebe esta descrição com as fotografias e documentos." style={{width:'100%',maxWidth:650,boxSizing:'border-box',padding:11,border:'1px solid #cad8e5',borderRadius:8,marginTop:6}}/>
+    <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap',marginTop:8}}>
+     <button type="button" className={voiceListening?'primary':'secondary'} onClick={voiceListening?stopVoiceCapture:startVoiceCapture} disabled={!voiceSupported&&!voiceListening}>{voiceListening?<><MicOff size={16}/> Parar captação de voz</>:<><Mic size={16}/> Descrever por voz</>}</button>
+     <small className="muted">{voiceListening?'A ouvir em português. Fala naturalmente; a transcrição será acrescentada à descrição.':'A voz é convertida em texto no dispositivo/navegador, quando suportado.'}</small>
+    </div>
     <input ref={inputRef} type="file" multiple accept={ACCEPT} onChange={chooseFiles} style={{display:'none'}}/>
     <input id="ativus-camera-native" type="file" accept="image/*" capture="environment" onChange={chooseFiles} style={{display:'none'}}/>
     <div style={{display:'flex',gap:8,flexWrap:'wrap',marginTop:16}}>
@@ -277,8 +296,8 @@ export default function AtivusAI({onBack=()=>{}}){
      <div style={{display:'flex',justifyContent:'space-between',gap:8,alignItems:'center',marginTop:10,color:'#fff',flexWrap:'wrap'}}><small>{captureCount} fotografia(s) capturada(s)</small><button type="button" className="primary" onClick={captureCameraFrame}><Camera size={16}/> Capturar imagem</button></div>
     </div>}
     <div style={{marginTop:16,padding:16,border:'1px solid #dce6ee',borderRadius:10,background:'#f7fafc'}}>
-     <strong><Brain size={17}/> Perguntas de apoio ao levantamento</strong>
-     <p className="muted">Responde ao que souberes. A IA recebe este contexto juntamente com as imagens; características não confirmáveis visualmente ficam por validar.</p>
+     <strong><Sparkles size={17}/> Aquisição assistida por IA</strong>
+     <p className="muted">O objetivo é evitar o preenchimento manual. Fotografa, filma ou descreve por voz. A IA deverá extrair os dados disponíveis, preparar os registos e pedir apenas os esclarecimentos que faltarem. Os campos seguintes são opcionais e servem apenas para contexto adicional.</p>
      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(190px,1fr))',gap:10}}>
       <label>Zona / localização<input value={guided.zona} onChange={e=>setGuided(v=>({...v,zona:e.target.value}))} placeholder="Ex.: fachada norte, cobertura…" style={{display:'block',width:'100%',padding:9,marginTop:5}}/></label>
       <label>Utilização<input value={guided.utilizacao} onChange={e=>setGuided(v=>({...v,utilizacao:e.target.value}))} placeholder="Ex.: escritórios, habitação…" style={{display:'block',width:'100%',padding:9,marginTop:5}}/></label>
