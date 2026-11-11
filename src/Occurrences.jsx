@@ -1,4 +1,5 @@
 import React,{useCallback,useEffect,useState} from 'react';
+import {ProcessingMark,SevenMMark} from './ProcessingMark.jsx';
 import {Plus,RefreshCw,AlertTriangle,ArrowLeft,Save,Search,ClipboardList} from 'lucide-react';
 import {supabase} from './lib/supabase.js';
 
@@ -71,7 +72,7 @@ export default function Occurrences(){
   }catch(err){setError(err?.message||'Não foi possível converter a ocorrência em patologia.')}finally{setPathologySaving(false)}
  };
  const visible=rows.filter(x=>(x.codigo+' '+x.descricao_observada+' '+assetName(x.ativo_id)+' '+x.estado).toLowerCase().includes(filter.toLowerCase()));
- if(loading)return <section className="content"><div className="panel" style={{padding:24}}>A carregar ocorrências…</div></section>;
+ if(loading)return <section className="content"><div className="panel"><ProcessingMark message="A carregar ocorrências…"/></div></section>;
  return <section className="content">
   <div className="toolbar"><div><h2 className="sectiontitle">{selected?'Análise da ocorrência':'Ocorrências comunicadas'}</h2><p className="muted">As ocorrências são registadas na Entidade Gestora e podem ser associadas diretamente a um ativo ou componente.</p></div><div style={{display:'flex',gap:8,flexWrap:'wrap'}}>{selected?<button className="secondary" onClick={()=>setSelected(null)}><ArrowLeft size={16}/> Voltar</button>:<><button className="secondary" onClick={load}><RefreshCw size={16}/> Atualizar</button><button className="primary" onClick={()=>{setOpen(true);setForm({...blank(),entidade_id:entities.length===1?entities[0].id:''});setError('')}}><Plus size={17}/> Comunicar problema</button></>}</div></div>
   {error&&<div className="panel" role="alert" style={{padding:14,marginBottom:14,color:'#8f1d1d',borderLeft:'4px solid #b42318'}}><AlertTriangle size={17}/> {error}</div>}
