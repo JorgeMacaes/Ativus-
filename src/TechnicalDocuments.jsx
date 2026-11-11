@@ -1,4 +1,5 @@
 import React,{useCallback,useEffect,useState} from 'react';
+import {ProcessingMark,SevenMMark} from './ProcessingMark.jsx';
 import {supabase} from './lib/supabase.js';
 import {Upload,RefreshCw,FileText,Download,Trash2} from 'lucide-react';
 
@@ -60,7 +61,7 @@ export default function TechnicalDocuments(){
   const {error:se}=await supabase.storage.from(BUCKET).remove([row.caminho_storage]);if(se)setMessage('Registo eliminado; o ficheiro ficou por remover: '+se.message);else setMessage('Documento eliminado.');
   await load();
  };
- if(loading)return <section className="content"><div className="panel" style={{padding:24}}>A carregar documentação…</div></section>;
+ if(loading)return <section className="content"><div className="panel"><ProcessingMark message="A carregar documentação…"/></div></section>;
  return <section className="content">
   <div className="toolbar"><div><h2 className="sectiontitle">Arquivo técnico central</h2><p className="muted">Documentos técnicos associados à Entidade Gestora, ativos, componentes, inspeções, patologias e trabalhos.</p></div><button className="secondary" onClick={load}><RefreshCw size={16}/> Atualizar</button></div>
   {error&&<div className="panel" role="alert" style={{padding:13,marginBottom:12,color:'#9b2525'}}>{error}</div>}
