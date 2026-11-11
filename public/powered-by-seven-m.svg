@@ -1,5 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 82" role="img" aria-label="Powered by Seven M">
+<style>
+@keyframes sevenMSpin{0%{transform:perspective(180px) rotateY(0deg)}50%{transform:perspective(180px) rotateY(180deg)}100%{transform:perspective(180px) rotateY(360deg)}}
+.mark{transform-box:fill-box;transform-origin:center;animation:sevenMSpin 2.8s cubic-bezier(.45,.05,.55,.95) infinite}
+@media(prefers-reduced-motion:reduce){.mark{animation-duration:8s}}
+</style>
 <text x="2" y="32" fill="#91a69f" font-family="Arial,Helvetica,sans-serif" font-size="19" letter-spacing="1">POWERED BY</text>
 <text x="2" y="70" fill="#ffffff" font-family="Georgia,'Times New Roman',serif" font-size="43">seven</text>
-<path d="M151 35 V68 H184 V35 M151 68 L167.5 51 L184 68" fill="none" stroke="#d8b65b" stroke-width="3.5"/>
+<g class="mark">
+ <path d="M151 35 V68 M151 35 L167.5 51 L184 35 V68 H161" fill="none" stroke="#806438" stroke-width="5" stroke-linecap="square" stroke-linejoin="miter" transform="translate(1.5 1.5)"/>
+ <path d="M151 35 V68 M151 35 L167.5 51 L184 35 V68 H161" fill="none" stroke="#b99a58" stroke-width="3.5" stroke-linecap="square" stroke-linejoin="miter"/>
+</g>
 </svg>
