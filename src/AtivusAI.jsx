@@ -284,7 +284,7 @@ export default function AtivusAI({onBack=()=>{}}){
  return <section className="content">
   <div className="toolbar"><div><h2 className="sectiontitle">Inventário Inteligente</h2><p className="muted">A IA adquire informação a partir de fotografias, voz e documentação, preparando os dados para validação.</p><p className="muted">Extração automática disponível: PDF, imagens, IFC e DXF. DWG, RVT/Revit, nuvens de pontos e outros formatos são arquivados, mas requerem conversores especializados ainda não ligados.</p></div><div style={{display:"flex",gap:8,flexWrap:"wrap"}}><button className="secondary" onClick={onBack}>Voltar ao Inventário</button><button className="secondary" onClick={()=>{load();loadSurveyData();}}><RefreshCw size={16}/> Atualizar</button></div></div>
   {error&&<div className="panel" role="alert" style={{padding:14,marginBottom:14,borderLeft:'4px solid #b42318',color:'#8f1d1d'}}><AlertTriangle size={17}/> {error}</div>}
-  {message&&<div className="panel" role="status" style={{padding:14,marginBottom:14,color:'#176344'}}><CheckCircle2 size={17}/> {message}</div>}
+  {analyzing?<div className="panel" role="status" style={{marginBottom:14}}><ProcessingMark message="A IA está a analisar imagens e documentos e a preparar propostas de inventário…"/></div>:message&&<div className="panel" role="status" style={{padding:14,marginBottom:14,color:'#176344'}}><CheckCircle2 size={17}/> {message}</div>}
   {!projects.length?<div className="panel" style={{padding:20}}>Não existem empreendimentos disponíveis para esta conta. Cria ou associa primeiro um empreendimento.</div>:<>
    <div className="panel" style={{padding:18,marginBottom:16}}>
     <label style={{display:'block',fontWeight:700,marginBottom:7}}>Empreendimento</label>
