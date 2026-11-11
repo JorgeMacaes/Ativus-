@@ -56,3 +56,11 @@ header .user{font-size:10px;width:32px;height:32px}
 header .page-heading h1{font-size:19px}
 header .hamb,.secondary,.primary{min-height:38px}
 @media(max-width:700px){header{gap:8px}header .page-heading h1{font-size:17px}.nav-section-title{padding-top:4px}}
+
+/* Cabeçalho móvel e controlo de sessão sem sobreposição */
+.session-control{position:fixed;z-index:1000;top:10px;right:14px;width:38px;height:38px;display:grid;place-items:center;pointer-events:none}
+.session-logout{pointer-events:auto;width:34px;height:34px;border:1px solid #dbe5ee;border-radius:9px;background:#eaf1f7;color:#23415b;font-size:18px;line-height:1;display:grid;place-items:center;cursor:pointer}
+header{padding-right:62px}
+.page-heading{gap:2px}
+.page-heading h1{font-size:18px;line-height:1.2}
+@media(max-width:700px){header{height:72px;padding:0 58px 0 12px;gap:6px}.page-heading{min-width:0;flex:1}.header-brand-logo{width:92px;max-height:28px;margin-right:6px}.page-heading h1{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.header-actions{gap:5px}.session-control{top:8px;right:10px;width:34px;height:34px}}
