@@ -64,3 +64,13 @@ header{padding-right:62px}
 .page-heading{gap:2px}
 .page-heading h1{font-size:18px;line-height:1.2}
 @media(max-width:700px){header{height:72px;padding:0 58px 0 12px;gap:6px}.page-heading{min-width:0;flex:1}.header-brand-logo{width:92px;max-height:28px;margin-right:6px}.page-heading h1{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.header-actions{gap:5px}.session-control{top:8px;right:10px;width:34px;height:34px}}
+
+/* Navegação hierárquica: Início e área Ativo */
+.nav-parent{font-weight:750;color:#e0eaf1}
+.nav-parent.active{background:#21435e}
+.nav-chevron{margin-left:auto;font-size:17px;line-height:1;transition:transform .18s ease;color:#91b4cf}
+.nav-chevron.expanded{transform:rotate(180deg)}
+.nav-children{margin:0 0 7px 13px;padding-left:10px;border-left:1px solid #35546b}
+.nav-child{font-size:12px;padding:9px 11px;margin:1px 0;color:#aebfcb}
+.nav-child svg{width:16px;height:16px}
+.nav-child.active{background:#294e68;color:#fff}
