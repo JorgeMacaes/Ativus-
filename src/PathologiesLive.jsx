@@ -1,4 +1,5 @@
 import React,{useCallback,useEffect,useMemo,useState} from 'react';
+import {ProcessingMark,SevenMMark} from './ProcessingMark.jsx';
 import {RefreshCw,Search,AlertTriangle,ClipboardList,ArrowLeft,Link2,Plus} from 'lucide-react';
 import {supabase} from './lib/supabase.js';
 
@@ -42,7 +43,7 @@ setAssets(a.data||[]);setComponents(c.data||[]);setRows(p.data||[]);setWorkOrder
  const assetName=id=>assets.find(x=>x.id===id)?.nome||'';
  const componentName=id=>components.find(x=>x.id===id)?.nome||'';
  const visible=useMemo(()=>rows.filter(p=>([p.codigo,p.tipo,p.caracterizacao,p.material,p.causa,p.consequencia,p.estado,assetName(p.ativo_id),componentName(p.componente_id)].filter(Boolean).join(' ')).toLowerCase().includes(filter.toLowerCase())),[rows,filter,assets,components]);
- if(loading)return <section className="content"><div className="panel" style={{padding:24}}>A carregar patologias…</div></section>;
+ if(loading)return <section className="content"><div className="panel"><ProcessingMark message="A carregar patologias…"/></div></section>;
  return <section className="content">
   <div className="toolbar"><div><h2 className="sectiontitle">Patologias</h2><p className="muted">Registos técnicos validados, provenientes de inspeções ou ocorrências.</p></div><button className="secondary" onClick={load}><RefreshCw size={16}/> Atualizar</button></div>
   {message&&<div className="panel" role="status" style={{padding:12,marginBottom:12,color:'#176344'}}>{message}</div>}
