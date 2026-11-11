@@ -1,0 +1,3 @@
+Build de teste Android solicitado em 11-11-2026.
+Branch: testes/ios-ativus-2026-10-31
+Objetivo: gerar o artefacto ativus-android-debug-apk para validação, sem publicação em produção.
