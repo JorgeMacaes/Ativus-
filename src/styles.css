@@ -37,3 +37,15 @@
 .powered-by-logo{width:116px;height:auto;display:block;margin-top:15px;opacity:.9}
 .header-brand-logo{width:112px;height:auto;display:block;margin-right:14px}
 .page-heading{display:flex;align-items:center;min-width:0}
+
+/* Seven M 3D processing mark */
+.seven-m-mark{display:block;flex:0 0 auto;overflow:visible;transform-style:preserve-3d;transform-origin:50% 50%;animation:seven-m-rotate 2.8s cubic-bezier(.45,.05,.55,.95) infinite;filter:drop-shadow(1px 1px 0 #8f713e) drop-shadow(2px 2px 0 #806333) drop-shadow(0 3px 5px rgba(11,31,49,.22))}
+.seven-m-mark path{fill:none;stroke-linecap:square;stroke-linejoin:miter}
+.seven-m-depth{stroke:#806438;stroke-width:9;transform:translate(2px,2px)}
+.seven-m-face{stroke:#b99a58;stroke-width:6.5}
+.processing-mark{min-height:150px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;color:#6f8290;font-size:13px;text-align:center}
+.processing-mark .seven-m-mark{filter:drop-shadow(1px 1px 0 #8f713e) drop-shadow(2px 2px 0 #806333) drop-shadow(0 4px 8px rgba(11,31,49,.16))}
+.processing-mark.compact{min-height:0;display:inline-flex;flex-direction:row;gap:8px;padding:0;font-size:inherit}
+.powered-by-logo{overflow:visible}
+@keyframes seven-m-rotate{0%{transform:perspective(420px) rotateY(0deg)}50%{transform:perspective(420px) rotateY(180deg)}100%{transform:perspective(420px) rotateY(360deg)}}
+@media(prefers-reduced-motion:reduce){.seven-m-mark{animation-duration:8s}}
