@@ -74,3 +74,13 @@ header{padding-right:62px}
 .nav-child{font-size:12px;padding:9px 11px;margin:1px 0;color:#aebfcb}
 .nav-child svg{width:16px;height:16px}
 .nav-child.active{background:#294e68;color:#fff}
+
+/* Painéis de resumo das subcategorias de Ativo */
+.module-dashboard{background:#fff;border:1px solid #e2e8ed;border-radius:14px;padding:18px 20px;margin:0 0 16px;box-shadow:0 1px 2px rgba(16,40,62,.03)}
+.module-dashboard-heading{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px}
+.module-dashboard-heading h3{margin:4px 0;color:#1b3448;font-size:16px}
+.module-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.module-kpi{min-width:0;background:#f6f8fa;border:1px solid #e8edf0;border-radius:10px;padding:12px 14px}
+.module-kpi span{display:block;color:#788d9d;font-size:11px;line-height:1.35}
+.module-kpi strong{display:block;color:#19344a;font-size:23px;margin-top:5px;font-weight:750}
+@media(max-width:650px){.module-dashboard{padding:15px}.module-kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.module-kpi{padding:10px}.module-kpi strong{font-size:20px}}
