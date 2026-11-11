@@ -1,5 +1,5 @@
 import React,{useCallback,useEffect,useState} from 'react';
-import {ProcessingMark,SevenMMark} from './ProcessingMark.jsx';
+import {ProcessingMark} from './ProcessingMark.jsx';
 import {supabase} from './lib/supabase.js';
 import {Upload,RefreshCw,FileText,Download,Trash2} from 'lucide-react';
 
