@@ -49,3 +49,10 @@
 .powered-by-logo{overflow:visible}
 @keyframes seven-m-rotate{0%{transform:perspective(420px) rotateY(0deg)}50%{transform:perspective(420px) rotateY(180deg)}100%{transform:perspective(420px) rotateY(360deg)}}
 @media(prefers-reduced-motion:reduce){.seven-m-mark{animation-duration:8s}}
+
+/* Ajustes de interface solicitados em 11-11-2026 */
+.nav-section-title{padding:0 13px 10px;color:#91b4cf;font-size:10px;font-weight:800;letter-spacing:.7px;text-transform:uppercase}
+header .user{font-size:10px;width:32px;height:32px}
+header .page-heading h1{font-size:19px}
+header .hamb,.secondary,.primary{min-height:38px}
+@media(max-width:700px){header{gap:8px}header .page-heading h1{font-size:17px}.nav-section-title{padding-top:4px}}
