@@ -1,5 +1,5 @@
 import React,{useCallback,useEffect,useMemo,useState} from 'react';
-import {ProcessingMark,SevenMMark} from './ProcessingMark.jsx';
+import {ProcessingMark} from './ProcessingMark.jsx';
 import {supabase} from './lib/supabase.js';
 import {Activity,Plus,RefreshCw,AlertTriangle,KeyRound,Copy} from 'lucide-react';
 const blank={entidade_id:'',ativo_id:'',componente_id:'',codigo:'',nome:'',tipo_sensor:'temperatura',unidade:'°C',limite_inferior:'',limite_superior:'',intervalo_leitura_min:'',observacoes:''};
