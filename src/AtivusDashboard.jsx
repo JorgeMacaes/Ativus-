@@ -51,7 +51,7 @@ export default function AtivusDashboard({onAssets=()=>{}}){
     {!assets.length&&<p className="empty">Ainda não existem ativos no inventário.</p>}
    </div>
   </div>
-  <div className="dashfoot"><Activity size={17}/><span><b>Origem dos dados:</b> Supabase. Os indicadores são partilhados e respeitam as permissões da Entidade Gestora.</span><button className="textbtn" onClick={load}><RefreshCw size={15}/> Atualizar</button></div>
+  <div className="dashfoot"><Activity size={17}/><span><b>Proteção de dados:</b> A ATIVUS, com tecnologia Seven M, assegura que a informação é disponibilizada apenas a utilizadores autorizados, de acordo com as permissões da respetiva Entidade Gestora.</span><button className="textbtn" onClick={load}><RefreshCw size={15}/> Atualizar</button></div>
  </section>;
 }
 function Stat({icon:Icon,label,value}){return <div className="stat"><div className="staticon"><Icon size={20}/></div><div><span>{label}</span><strong>{value}</strong></div></div>}
