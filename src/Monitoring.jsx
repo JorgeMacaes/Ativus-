@@ -1,4 +1,5 @@
 import React,{useCallback,useEffect,useMemo,useState} from 'react';
+import {ProcessingMark,SevenMMark} from './ProcessingMark.jsx';
 import {supabase} from './lib/supabase.js';
 import {Activity,Plus,RefreshCw,AlertTriangle,KeyRound,Copy} from 'lucide-react';
 const blank={entidade_id:'',ativo_id:'',componente_id:'',codigo:'',nome:'',tipo_sensor:'temperatura',unidade:'°C',limite_inferior:'',limite_superior:'',intervalo_leitura_min:'',observacoes:''};
@@ -60,7 +61,7 @@ export default function Monitoring(){
   try{const d=devices.find(x=>x.id===reading.dispositivo_id);if(!d)throw new Error('Seleciona um ponto de monitorização.');const {data:u}=await supabase.auth.getUser();const value=Number(reading.valor);if(!Number.isFinite(value))throw new Error('Indica um valor numérico.');if(d.limite_inferior!==null&&d.limite_superior!==null&&Number(d.limite_inferior)>Number(d.limite_superior))throw new Error('O limite inferior não pode ser superior ao limite superior.');const state=(d.limite_inferior!==null&&value<Number(d.limite_inferior))||(d.limite_superior!==null&&value>Number(d.limite_superior))?'alerta':'normal';const {error:e2}=await supabase.from('leituras_monitorizacao').insert({dispositivo_id:d.id,valor:value,unidade:d.unidade,estado:state,origem:'manual',observacoes:reading.observacoes||null,registado_por:u?.user?.id||null});if(e2)throw e2;setReading(v=>({...v,valor:'',observacoes:''}));setMessage(state==='alerta'?'Leitura guardada com alerta por ultrapassar os limites configurados.':'Leitura guardada.');await load()}catch(e){setError(e.message||'Não foi possível guardar a leitura.')}finally{setSaving(false)}
  };
  const latest=useMemo(()=>{const m=new Map();readings.forEach(x=>{if(!m.has(x.dispositivo_id))m.set(x.dispositivo_id,x)});return m},[readings]);
- if(loading)return <section className="content"><div className="panel" style={{padding:24}}>A carregar monitorização…</div></section>;
+ if(loading)return <section className="content"><div className="panel"><ProcessingMark message="A carregar monitorização…"/></div></section>;
  return <section className="content">
   <div className="toolbar"><div><h2 className="sectiontitle">Sistemas de monitorização</h2><p className="muted">Registo de sensores, limites de referência e leituras técnicas.</p></div><div style={{display:'flex',gap:8}}><button className="secondary" onClick={load}><RefreshCw size={16}/> Atualizar</button><button className="primary" onClick={()=>setOpen(v=>!v)}><Plus size={16}/> Novo ponto</button></div></div>
   {error&&<div className="panel" role="alert" style={{padding:12,color:'#9b2525',marginBottom:12}}>{error}</div>}{message&&<div className="panel" role="status" style={{padding:12,color:'#176344',marginBottom:12}}>{message}</div>}
