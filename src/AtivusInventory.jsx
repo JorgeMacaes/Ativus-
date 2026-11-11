@@ -1,4 +1,5 @@
 import React,{useCallback,useEffect,useMemo,useState} from 'react';
+import {ProcessingMark,SevenMMark} from './ProcessingMark.jsx';
 import {Building2,Plus,RefreshCw,Search,ArrowLeft,Brain,AlertTriangle} from 'lucide-react';
 import {supabase} from './lib/supabase.js';
 
@@ -65,7 +66,7 @@ export default function AtivusInventory({onOpenAI=()=>{}}){
   }catch(e){setError(e?.message||'Não foi possível criar o ativo.');}
   finally{setSaving(false);}
  };
- if(loading)return <section className="content"><div className="panel" style={{padding:24}}>A carregar inventário partilhado…</div></section>;
+ if(loading)return <section className="content"><div className="panel"><ProcessingMark message="A carregar inventário…"/></div></section>;
  return <section className="content">
   <div className="toolbar"><div><h2 className="sectiontitle">{selected?'Ficha do ativo':'Ativos / Inventário'}</h2><p className="muted">Cada ativo pertence a uma Entidade Gestora e é registado diretamente no inventário.</p></div><div style={{display:'flex',gap:8,flexWrap:'wrap'}}>{selected?<button className="secondary" onClick={()=>setSelected(null)}><ArrowLeft size={16}/> Voltar ao inventário</button>:<><button className="secondary" onClick={onOpenAI}><Brain size={16}/> Inventário Inteligente</button><button className="secondary" onClick={load}><RefreshCw size={16}/> Atualizar</button><button className="primary" onClick={()=>setFormOpen(true)} disabled={!entities.length}><Plus size={17}/> Novo Ativo</button></>}</div></div>
   {error&&<div className="panel" role="alert" style={{padding:14,marginBottom:14,color:'#8f1d1d',borderLeft:'4px solid #b42318'}}><AlertTriangle size={17}/> {error}</div>}
