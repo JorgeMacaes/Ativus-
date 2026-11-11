@@ -30,7 +30,7 @@ export default function AtivusDashboard({onAssets=()=>{}}){
  const assetName=id=>assets.find(a=>a.id===id)?.nome||'Ativo sem identificação';
  if(loading)return <section className="content"><div className="panel" style={{padding:24}}>A carregar indicadores reais do Supabase…</div></section>;
  return <section className="content">
-  <div className="hero"><div><span className="pill">Dashboard · dados partilhados</span><h2>Visão global dos ativos</h2><p>Indicadores atualizados a partir do inventário, inspeções e patologias da Entidade Gestora.</p></div><button className="primary" onClick={onAssets}>Abrir Inventário <ChevronRight size={16}/></button></div>
+  <div className="hero"><div><span className="pill">Dashboard · dados partilhados</span><h2>Visão global dos ativos</h2><p>Indicadores atualizados a partir do inventário, inspeções e patologias da Entidade Gestora.</p></div></div>
   {error&&<div className="panel" role="alert" style={{padding:14,marginTop:14,color:'#8f1d1d'}}>{error}</div>}
   <div className="stats"><Stat icon={Building2} label="Ativos registados" value={assets.length}/><Stat icon={ClipboardCheck} label="Inspeções registadas" value={inspections.length}/><Stat icon={AlertTriangle} label="Patologias por tratar" value={open}/><Stat icon={ShieldCheck} label="Ativos em EC5" value={assets.filter(a=>Number(a.classe_estado_conservacao)===5).length}/></div>
   <div className="dashgrid">
