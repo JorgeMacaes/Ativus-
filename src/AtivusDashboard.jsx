@@ -1,4 +1,5 @@
 import React,{useCallback,useEffect,useMemo,useState} from 'react';
+import {ProcessingMark,SevenMMark} from './ProcessingMark.jsx';
 import {Building2,ClipboardCheck,AlertTriangle,ShieldCheck,ChevronRight,RefreshCw,Activity} from 'lucide-react';
 import {supabase} from './lib/supabase.js';
 
@@ -28,7 +29,7 @@ export default function AtivusDashboard({onAssets=()=>{}}){
  const open=pathologies.filter(p=>!['encerrada','verificada'].includes(p.estado)).length;
  const recent=inspections.slice(0,4),maxEC=Math.max(1,...ecCounts.map(x=>x.value)),maxSeverity=Math.max(1,...severity.map(x=>x.value));
  const assetName=id=>assets.find(a=>a.id===id)?.nome||'Ativo sem identificação';
- if(loading)return <section className="content"><div className="panel" style={{padding:24}}>A carregar indicadores reais do Supabase…</div></section>;
+ if(loading)return <section className="content"><div className="panel"><ProcessingMark message="A carregar indicadores do Dashboard…"/></div></section>;
  return <section className="content">
   <div className="hero"><div><span className="pill">Dashboard · dados partilhados</span><h2>Visão global dos ativos</h2><p>Indicadores atualizados a partir do inventário, inspeções e patologias da Entidade Gestora.</p></div></div>
   {error&&<div className="panel" role="alert" style={{padding:14,marginTop:14,color:'#8f1d1d'}}>{error}</div>}
