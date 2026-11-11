@@ -1,4 +1,5 @@
 import React,{useCallback,useEffect,useMemo,useState} from 'react';
+import {ProcessingMark,SevenMMark} from './ProcessingMark.jsx';
 import {Plus,RefreshCw,ClipboardCheck,AlertTriangle,ChevronRight,ArrowLeft,Save,CheckCircle2} from 'lucide-react';
 import {supabase} from './lib/supabase.js';
 
@@ -118,7 +119,7 @@ export default function Inspections(){
  };
  const itemName=item=>[item.elemento_codigo,item.elemento_nome].filter(Boolean).join(' · ');
  const statusLabel=s=>s==='inspecionado'?'Inspecionado':s==='inacessivel'?'Inacessível':s==='nao_aplicavel'?'Não aplicável':'Pendente';
- if(loading)return <section className="content"><div className="panel" style={{padding:24}}>A carregar inspeções do Supabase…</div></section>;
+ if(loading)return <section className="content"><div className="panel"><ProcessingMark message="A carregar inspeções…"/></div></section>;
  return <section className="content">
   <div className="toolbar"><div><h2 className="sectiontitle">{selected?'Ficha da inspeção':'Inspeções'}</h2><p className="muted">Cada inspeção cobre automaticamente o ativo e todos os componentes e subcomponentes do inventário.</p></div><div style={{display:'flex',gap:8,flexWrap:'wrap'}}>{selected?<button className="secondary" onClick={()=>{setSelected(null);setActiveItem(null)}}><ArrowLeft size={16}/> Voltar à lista</button>:<><button className="secondary" onClick={load}><RefreshCw size={16}/> Atualizar</button><button className="primary" onClick={openNew} disabled={!entities.length}><Plus size={17}/> Nova inspeção</button></>}</div></div>
   {error&&<div className="panel" role="alert" style={{padding:14,marginBottom:14,borderLeft:'4px solid #b42318',color:'#8f1d1d'}}><AlertTriangle size={17}/> {error}</div>}
